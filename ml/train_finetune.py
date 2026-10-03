@@ -75,10 +75,10 @@ def train_segmentation(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Zoodex Model Fine-Tuning")
-    parser.add_argument("--dataset", type=str, default="coco8-seg.yaml", help="Path o nome del dataset YAML (es. lvis.yaml, coco-seg.yaml, o custom.yaml)")
+    parser.add_argument("--dataset", type=str, default="lvis.yaml", help="Path o nome del dataset YAML (es. lvis.yaml, coco-seg.yaml)")
     parser.add_argument("--model", type=str, default="yolo11m-seg.pt", help="Pesi base (yolo11n-seg.pt, yolo11m-seg.pt, yolo11x-seg.pt)")
-    parser.add_argument("--epochs", type=int, default=30, help="Numero di epoche")
-    parser.add_argument("--batch", type=int, default=16, help="Batch size (consigliato 16 per RTX 5070)")
+    parser.add_argument("--epochs", type=int, default=15, help="Numero di epoche (15 consigliate per convergenza LVIS)")
+    parser.add_argument("--batch", type=int, default=32, help="Batch size (32 su A100, 16 su RTX 5070)")
     parser.add_argument("--imgsz", type=int, default=640, help="Risoluzione input (320, 640)")
     
     args = parser.parse_args()
