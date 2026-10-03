@@ -27,11 +27,42 @@ class ObjectDetector:
             cls._instance = cls()
         return cls._instance
 
+    @classmethod
+    def get_model_path(cls) -> str:
+        """Finds fine-tuned model weights (best.pt or last.pt) if available, otherwise returns standard YOLO."""
+        from pathlib import Path
+        backend_dir = Path(__file__).resolve().parent.parent.parent
+        root_dir = backend_dir.parent
+
+        search_dirs = [
+            root_dir / "runs" / "segment" / "zoodex_runs",
+            root_dir / "zoodex_runs",
+            backend_dir / "weights",
+        ]
+        found_weights = []
+        for sdir in search_dirs:
+            if sdir.exists():
+                for p in sdir.glob("**/weights/best.pt"):
+                    if p.exists() and p.stat().st_size > 500000:
+                        found_weights.append((p.stat().st_mtime, p))
+                for p in sdir.glob("**/weights/last.pt"):
+                    if p.exists() and p.stat().st_size > 500000:
+                        found_weights.append((p.stat().st_mtime, p))
+
+        if found_weights:
+            # Sort by newest
+            found_weights.sort(key=lambda x: x[0], reverse=True)
+            chosen = str(found_weights[0][1])
+            logger.info(">>> MODELLO PERSONALIZZATO RILEVATO: %s! Utilizzo pesi fine-tuned.", chosen)
+            return chosen
+
+        return "yolo11n-seg.pt"
+
     def _load_model(self):
         try:
             from ultralytics import YOLO
+            self.model_name = self.get_model_path()
             logger.info("Caricamento modello YOLO segmentation: %s", self.model_name)
-            # YOLO auto-downloads the pretrained weights if not present locally
             self.model = YOLO(self.model_name)
             logger.info("Modello YOLO caricato con successo!")
         except Exception as e:
@@ -40,6 +71,12 @@ class ObjectDetector:
                 e,
             )
             self.model = None
+
+    def reload_model(self) -> str:
+        """Reloads the model (useful after fine-tuning finishes)."""
+        logger.info("Ricaricamento modello su richiesta...")
+        self._load_model()
+        return self.model_name
 
     def detect_and_segment(
         self,

@@ -22,6 +22,7 @@ export interface DexEntry {
   height: string;
   weight: string;
   description: string;
+  image_url?: string;
   badge_color?: string;
   habitat?: string;
   unlocked_default?: boolean;
@@ -37,10 +38,16 @@ export interface DetectionItem {
   is_animal: boolean;
 }
 
+export interface AnimalCandidate extends DexEntry {
+  confidence?: number;
+  is_already_unlocked?: boolean;
+}
+
 export interface ScanResult {
   success: boolean;
   count: number;
   detections: DetectionItem[];
+  candidates?: AnimalCandidate[];
   newly_unlocked: DexEntry[];
   image_size?: { width: number; height: number };
 }
@@ -65,6 +72,9 @@ export interface AnimalItem extends DexEntry {
 import Constants from 'expo-constants';
 
 function getDefaultHost(): string {
+  if (process.env.EXPO_PUBLIC_BACKEND_URL) {
+    return process.env.EXPO_PUBLIC_BACKEND_URL.replace(/\/$/, '');
+  }
   const hostUri = Constants.expoConfig?.hostUri || (Constants as any).manifest?.debuggerHost;
   if (hostUri) {
     const ip = hostUri.split(':')[0];
@@ -122,6 +132,28 @@ export class ZoodexApi {
       console.warn('Backend scan failed, using simulated on-device detection:', e);
       return this.simulateOfflineScan();
     }
+  }
+
+  static async unlockAnimal(
+    dexNumber: string,
+    deviceId: string = 'pixel8a_user'
+  ): Promise<{ status: string; dex_number: string; total_unlocked: number }> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/v1/unlock`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          dex_number: dexNumber,
+          device_id: deviceId,
+        }),
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch (e) {
+      console.warn('Errore sblocco animale:', e);
+    }
+    return { status: 'unlocked', dex_number: dexNumber, total_unlocked: 0 };
   }
 
   static async getContinents(deviceId: string = 'pixel8a_user'): Promise<ContinentItem[]> {

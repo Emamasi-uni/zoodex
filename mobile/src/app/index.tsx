@@ -10,6 +10,7 @@ import {
   TextInput,
   Switch,
   Alert,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions } from 'expo-camera';
@@ -22,10 +23,10 @@ import { DexHeader } from '../components/DexHeader';
 import { DetectionOverlay } from '../components/DetectionOverlay';
 import { DexInfoCard } from '../components/DexInfoCard';
 import { UnlockModal } from '../components/UnlockModal';
-import { DetectionItem } from '../services/api';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const VIEWFINDER_HEIGHT = SCREEN_WIDTH * 1.05;
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const DEFAULT_VIEWFINDER_HEIGHT = SCREEN_HEIGHT * 0.58;
+const INSPECT_VIEWFINDER_HEIGHT = SCREEN_HEIGHT * 0.43;
 
 export default function ScannerScreen() {
   const router = useRouter();
@@ -37,6 +38,9 @@ export default function ScannerScreen() {
   const [cameraReady, setCameraReady] = useState(false);
   const [settingsVisible, setSettingsVisible] = useState(false);
   const [customIp, setCustomIp] = useState('');
+  const [capturedPhotoUri, setCapturedPhotoUri] = useState<string | null>(null);
+  const [scanNotice, setScanNotice] = useState<string | null>(null);
+  const noticeTimerRef = useRef<any>(null);
   const isTakingPictureRef = useRef(false);
 
   const {
@@ -46,13 +50,12 @@ export default function ScannerScreen() {
     isOnline,
     batterySaver,
     setBatterySaver,
-    autoContinuousScan,
-    setAutoContinuousScan,
     isScanning,
     activeDetections,
     selectedDetection,
     setSelectedDetection,
     triggerScan,
+    confirmAndUnlock,
     unlockedPopupAnimal,
     dismissPopup,
     setSelectedContinent,
@@ -63,136 +66,221 @@ export default function ScannerScreen() {
     setCustomIp(backendUrl);
   }, []);
 
-  // Continuous auto-scan effect with strict debouncing and concurrency guard
-  useEffect(() => {
-    if (!autoContinuousScan) return;
-    const intervalTime = batterySaver ? 4000 : 2500;
-    const timer = setInterval(() => {
-      if (!isScanning && !isTakingPictureRef.current && cameraReady) {
-        handleCaptureAndScan();
-      }
-    }, intervalTime);
-    return () => clearInterval(timer);
-  }, [autoContinuousScan, isScanning, batterySaver, cameraReady]);
+  const showNotice = (msg: string) => {
+    setScanNotice(msg);
+    if (noticeTimerRef.current) clearTimeout(noticeTimerRef.current);
+    noticeTimerRef.current = setTimeout(() => setScanNotice(null), 3500);
+  };
 
-  const handleCaptureAndScan = async () => {
+  const unfreezeCamera = () => {
+    setCapturedPhotoUri(null);
+    setSelectedDetection(null);
+    setScanNotice(null);
+    useDexStore.getState().setActiveDetections([]);
+  };
+
+  const handleManualScan = async () => {
     if (isScanning || isTakingPictureRef.current) return;
-
     if (!permission?.granted || !cameraReady || !cameraRef.current) {
-      console.log('Fotocamera non pronta per lo scatto.');
+      showNotice('Sensore ottico non pronto');
       return;
     }
 
     try {
       isTakingPictureRef.current = true;
+      // Close any previously opened card
+      setSelectedDetection(null);
+
       const photo = await cameraRef.current.takePictureAsync({
-        quality: 0.25, // Compact JPEG for fast transmission to detector
+        quality: 0.35,
         base64: true,
-        shutterSound: false,
+        shutterSound: true,
       });
 
       if (photo?.base64) {
-        await triggerScan(photo.base64);
+        // Freeze frame with captured photo so contours align with the exact snapped image!
+        if (photo.uri) {
+          setCapturedPhotoUri(photo.uri);
+        }
+
+        const res = await triggerScan(photo.base64, false);
+
+        if (res.detections && res.detections.length > 0) {
+          const animalDets = res.detections.filter((d) => d.is_animal);
+          if (animalDets.length > 0) {
+            showNotice(
+              `Rilevato: ${animalDets[0].dex_entry?.name || animalDets[0].class_name}. Tocca l'elemento per ispezionarlo.`
+            );
+          } else {
+            showNotice('Elementi rilevati. Tocca il riquadro per i dettagli.');
+          }
+        } else {
+          showNotice('Nessun bersaglio identificato. Prova ad avvicinarti al soggetto.');
+        }
       }
     } catch (e) {
-      console.warn('Errore scatto fotocamera:', e);
+      console.warn('Errore scatto manuale:', e);
+      showNotice('Errore durante l\'acquisizione del fotogramma');
     } finally {
       isTakingPictureRef.current = false;
     }
   };
 
-  const handleTestDemoSubject = (animalKey: string) => {
-    // Allows testing recognition immediately without camera setup
-    triggerScan('demo_' + animalKey);
-  };
+  // Viewfinder height dynamically adjusts when inspecting to give DexInfoCard perfect breathing room
+  const currentViewfinderHeight = selectedDetection
+    ? INSPECT_VIEWFINDER_HEIGHT
+    : DEFAULT_VIEWFINDER_HEIGHT;
 
   return (
     <SafeAreaView style={styles.safeContainer} edges={['top']}>
-      {/* Authentic Pokédex Red Upper Bezel & Sensor Eye */}
+      {/* High-Tech Clean DexHeader */}
       <DexHeader
-        title="ZOODEX · SCANNER"
+        title="ZOODEX · BIO-SCANNER"
         onSettingsPress={() => setSettingsVisible(true)}
       />
 
-      <View style={styles.content}>
-        {/* Camera Viewfinder Screen with Pokédex Metallic Bezel */}
-        <View style={styles.viewfinderBezel}>
+      <View style={styles.mainContainer}>
+        {/* Floating Scan Notice Toast */}
+        {scanNotice && (
+          <View style={styles.toastNoticeBox}>
+            <Ionicons name="information-circle-outline" size={16} color="#00E5FF" />
+            <Text style={styles.toastNoticeText}>{scanNotice}</Text>
+          </View>
+        )}
+
+        {/* Viewfinder Screen with Cybernetic Frame */}
+        <View style={[styles.viewfinderWrapper, { height: currentViewfinderHeight }]}>
           <View style={styles.screenInner}>
             {permission?.granted ? (
-              <CameraView
-                ref={cameraRef}
-                style={StyleSheet.absoluteFill}
-                facing={facing}
-                enableTorch={torch}
-                onCameraReady={() => setCameraReady(true)}>
+              <View style={StyleSheet.absoluteFill}>
+                {/* CameraView is ALWAYS mounted so shutter never fails or crashes */}
+                <CameraView
+                  ref={cameraRef}
+                  style={StyleSheet.absoluteFill}
+                  facing={facing}
+                  enableTorch={torch}
+                  onCameraReady={() => setCameraReady(true)}
+                />
+
+                {/* Frozen image overlay on top of camera after scan with tap-to-unfreeze */}
+                {capturedPhotoUri && (
+                  <TouchableOpacity
+                    style={StyleSheet.absoluteFill}
+                    activeOpacity={1}
+                    onPress={() => {
+                      if (selectedDetection) {
+                        setSelectedDetection(null);
+                      } else {
+                        unfreezeCamera();
+                      }
+                    }}>
+                    <Image
+                      source={{ uri: capturedPhotoUri }}
+                      style={StyleSheet.absoluteFill}
+                      resizeMode="cover"
+                    />
+                  </TouchableOpacity>
+                )}
+
+                {/* SVG Segmentation Contours & HUD Target Overlay */}
                 <DetectionOverlay
-                  width={SCREEN_WIDTH - 24}
-                  height={VIEWFINDER_HEIGHT}
+                  width={SCREEN_WIDTH - 20}
+                  height={currentViewfinderHeight}
                   detections={activeDetections}
                   isScanning={isScanning}
                   selectedId={selectedDetection?.id}
-                  onSelectDetection={(det) => setSelectedDetection(det)}
+                  onSelectDetection={(det) => {
+                    setSelectedDetection(det);
+                  }}
                 />
-              </CameraView>
+              </View>
             ) : (
               <View style={styles.permissionBox}>
-                <Ionicons name="camera-outline" size={48} color="#00E5FF" />
-                <Text style={styles.permissionTitle}>SENSORE OTTICO SPENTO</Text>
+                <Ionicons name="camera-outline" size={44} color="#00E5FF" />
+                <Text style={styles.permissionTitle}>SENSORE OTTICO NON ATTIVO</Text>
                 <Text style={styles.permissionText}>
-                  Permetti a Zoodex di attivare la fotocamera per scansionare e riconoscere gli animali.
+                  Autorizza l'accesso alla fotocamera per analizzare e segmentare gli elementi inquadrati.
                 </Text>
                 <TouchableOpacity
                   style={styles.permissionBtn}
                   onPress={requestPermission}
                   activeOpacity={0.8}>
-                  <Text style={styles.permissionBtnText}>ATTIVA FOTOCAMERA</Text>
-                </TouchableOpacity>
-
-                {/* Instant offline test button */}
-                <TouchableOpacity
-                  style={[styles.permissionBtn, { backgroundColor: '#334155', marginTop: 10 }]}
-                  onPress={() => handleTestDemoSubject('cat')}
-                  activeOpacity={0.8}>
-                  <Text style={styles.permissionBtnText}>PROVA DEMO SENSORE</Text>
+                  <Text style={styles.permissionBtnText}>ABILITA FOTOCAMERA</Text>
                 </TouchableOpacity>
               </View>
             )}
 
-            {/* Viewfinder Controls: Torch & Camera flip */}
-            <View style={styles.cameraFloatingControls}>
-              <TouchableOpacity
-                style={[styles.floatingBtn, torch && styles.floatingBtnActive]}
-                onPress={() => setTorch(!torch)}>
-                <Ionicons
-                  name={torch ? 'flash' : 'flash-off'}
-                  size={18}
-                  color={torch ? '#FFCB05' : '#FFFFFF'}
-                />
-              </TouchableOpacity>
+            {/* Top Floating Controls Bar */}
+            <View style={styles.floatingTopBar}>
+              {capturedPhotoUri ? (
+                <TouchableOpacity
+                  style={[styles.statusBadge, styles.statusBadgeUnlockBtn]}
+                  onPress={unfreezeCamera}
+                  activeOpacity={0.8}>
+                  <Ionicons name="videocam-outline" size={13} color="#00E5FF" />
+                  <Text style={styles.statusBadgeUnlockText}>SBLOCCA CAMERA</Text>
+                  <Ionicons name="close-circle" size={14} color="#38BDF8" />
+                </TouchableOpacity>
+              ) : (
+                <View style={styles.statusBadge}>
+                  <View
+                    style={[
+                      styles.pulsingDot,
+                      isScanning ? styles.dotScanning : styles.dotReady,
+                    ]}
+                  />
+                  <Text style={styles.statusBadgeText}>
+                    {isScanning ? 'ELABORAZIONE...' : 'SENSORE OTTICO PRONTO'}
+                  </Text>
+                </View>
+              )}
 
-              <TouchableOpacity
-                style={styles.floatingBtn}
-                onPress={() => setFacing(facing === 'back' ? 'front' : 'back')}>
-                <Ionicons name="camera-reverse" size={18} color="#FFFFFF" />
-              </TouchableOpacity>
+              <View style={styles.cameraActionButtons}>
+                <TouchableOpacity
+                  style={[styles.floatingBtn, torch && styles.floatingBtnActive]}
+                  onPress={() => setTorch(!torch)}>
+                  <Ionicons
+                    name={torch ? 'flash' : 'flash-off-outline'}
+                    size={16}
+                    color={torch ? '#FFCB05' : '#FFFFFF'}
+                  />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.floatingBtn}
+                  onPress={() => setFacing(facing === 'back' ? 'front' : 'back')}>
+                  <Ionicons name="camera-reverse-outline" size={16} color="#FFFFFF" />
+                </TouchableOpacity>
+              </View>
             </View>
 
-            {/* Quick Demo Subject Selector Bar */}
-            <View style={styles.demoBar}>
-              <Text style={styles.demoBarLabel}>TEST RAPIDO:</Text>
-              {['Gatto', 'Cane', 'Uccello', 'Orso', 'Oggetti'].map((item, idx) => (
+            {/* Bottom Viewfinder Telemetry Bar */}
+            <View style={styles.telemetryBar}>
+              <View style={styles.telemetryItem}>
+                <Text style={styles.telemetryLabel}>ELEMENTI SCONTORNATI:</Text>
+                <Text style={styles.telemetryValue}>{activeDetections.length}</Text>
+              </View>
+
+              {capturedPhotoUri && (
                 <TouchableOpacity
-                  key={item}
-                  style={styles.demoChip}
-                  onPress={() => handleTestDemoSubject(item.toLowerCase())}>
-                  <Text style={styles.demoChipText}>{item}</Text>
+                  style={styles.unfreezePillBtn}
+                  onPress={unfreezeCamera}
+                  activeOpacity={0.8}>
+                  <Ionicons name="eye-outline" size={12} color="#00E5FF" />
+                  <Text style={styles.unfreezePillText}>TORNA DAL VIVO</Text>
                 </TouchableOpacity>
-              ))}
+              )}
+
+              {isScanning && (
+                <View style={styles.scanningMiniSpinner}>
+                  <ActivityIndicator size="small" color="#00E5FF" />
+                </View>
+              )}
             </View>
           </View>
         </View>
 
-        {/* Selected Detection Information Drawer */}
+        {/* Selected Biometric Inspection Card with Expand to Full-Screen */}
         {selectedDetection && (
           <DexInfoCard
             detection={selectedDetection}
@@ -201,73 +289,63 @@ export default function ScannerScreen() {
               setSelectedContinent(continent);
               router.push('/explore');
             }}
+            onConfirmUnlock={(animal) => {
+              confirmAndUnlock({
+                ...animal,
+                confidence: selectedDetection.confidence,
+              });
+              setSelectedDetection(null);
+            }}
           />
         )}
 
-        {/* Pokédex Lower Hardware Controls */}
-        <View style={styles.controlsBezel}>
-          {/* Continuous Auto-Scan Toggle Switch */}
-          <View style={styles.autoScanRow}>
-            <View style={styles.autoScanLabelBox}>
-              <Ionicons
-                name="scan-circle"
-                size={20}
-                color={autoContinuousScan ? '#10B981' : '#94A3B8'}
-              />
-              <Text style={styles.autoScanLabel}>SCANSIONE CONTINUA</Text>
-            </View>
-            <Switch
-              value={autoContinuousScan}
-              onValueChange={setAutoContinuousScan}
-              trackColor={{ false: '#334155', true: '#10B981' }}
-              thumbColor={autoContinuousScan ? '#FFFFFF' : '#94A3B8'}
-            />
-          </View>
+        {/* Bottom Navigation Console with Single "SCANSIONA" Button */}
+        <View style={styles.bottomConsole}>
+          {/* Left: Global Fauna Catalog */}
+          <TouchableOpacity
+            style={styles.sideConsoleBtn}
+            onPress={() => router.push('/explore')}
+            activeOpacity={0.8}>
+            <Ionicons name="albums-outline" size={20} color="#FFFFFF" />
+            <Text style={styles.sideConsoleBtnText}>ZOODEX</Text>
+          </TouchableOpacity>
 
-          {/* Master Pokédex Scan Action Button */}
-          <View style={styles.scanButtonArea}>
-            {/* Pokédex Directional Pad (Decoration) */}
-            <View style={styles.dpad}>
-              <View style={styles.dpadH} />
-              <View style={styles.dpadV} />
-              <View style={styles.dpadCenter} />
-            </View>
-
-            {/* Big Pokédex Center Scan Button */}
-            <TouchableOpacity
-              style={styles.scanOuterButton}
-              activeOpacity={0.7}
-              disabled={isScanning}
-              onPress={handleCaptureAndScan}>
+          {/* Center: The Single Dedicated "SCANSIONA" Button */}
+          <TouchableOpacity
+            style={[styles.scanTriggerBtn, isScanning && styles.scanTriggerBtnActive]}
+            onPress={handleManualScan}
+            disabled={isScanning}
+            activeOpacity={0.85}>
+            <View style={styles.scanTriggerOuterRing}>
               <View
                 style={[
-                  styles.scanInnerButton,
-                  isScanning && styles.scanInnerButtonActive,
+                  styles.scanTriggerInnerCore,
+                  isScanning && styles.scanTriggerCoreActive,
                 ]}>
-                {isScanning ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
-                ) : (
-                  <>
-                    <Ionicons name="scan" size={26} color="#FFFFFF" />
-                    <Text style={styles.scanButtonText}>SCANSIONA</Text>
-                  </>
-                )}
+                <Ionicons
+                  name={isScanning ? 'sync-outline' : 'scan-sharp'}
+                  size={26}
+                  color="#FFFFFF"
+                />
               </View>
-            </TouchableOpacity>
+            </View>
+            <Text style={styles.scanTriggerLabel}>
+              {isScanning ? 'ANALISI...' : 'SCANSIONA'}
+            </Text>
+          </TouchableOpacity>
 
-            {/* Catalog Shortcut Button */}
-            <TouchableOpacity
-              style={styles.catalogShortcutBtn}
-              onPress={() => router.push('/explore')}
-              activeOpacity={0.8}>
-              <Ionicons name="book" size={22} color="#FFFFFF" />
-              <Text style={styles.catalogShortcutText}>DEX</Text>
-            </TouchableOpacity>
-          </View>
+          {/* Right: Settings and Configuration */}
+          <TouchableOpacity
+            style={styles.sideConsoleBtn}
+            onPress={() => setSettingsVisible(true)}
+            activeOpacity={0.8}>
+            <Ionicons name="settings-outline" size={20} color="#94A3B8" />
+            <Text style={[styles.sideConsoleBtnText, { color: '#94A3B8' }]}>OPZIONI</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
-      {/* Discovery Celebration Modal */}
+      {/* Discovery Celebration Modal with Real Animal Photo */}
       <UnlockModal
         animal={unlockedPopupAnimal}
         onDismiss={dismissPopup}
@@ -282,26 +360,22 @@ export default function ScannerScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.settingsCard}>
             <View style={styles.settingsHeader}>
-              <Ionicons name="cog" size={22} color="#DC0A2D" />
-              <Text style={styles.settingsTitle}>IMPOSTAZIONI ZOODEX</Text>
+              <Text style={styles.settingsTitle}>CONFIGURAZIONE SISTEMA</Text>
               <TouchableOpacity onPress={() => setSettingsVisible(false)}>
-                <Ionicons name="close" size={24} color="#64748B" />
+                <Ionicons name="close" size={22} color="#64748B" />
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.inputLabel}>INDIRIZZO BACKEND SERVER:</Text>
+            <Text style={styles.inputLabel}>SERVER BACKEND IP:</Text>
             <TextInput
               style={styles.textInput}
               value={customIp}
               onChangeText={setCustomIp}
-              placeholder="es. http://192.168.1.15:8000"
+              placeholder="es. http://192.168.1.65:8000"
               placeholderTextColor="#64748B"
               autoCapitalize="none"
               autoCorrect={false}
             />
-            <Text style={styles.inputHelp}>
-              Inserisci l'IP del tuo PC sulla stessa rete Wi-Fi o l'URL Cloudflare/HuggingFace.
-            </Text>
 
             <TouchableOpacity
               style={styles.testBtn}
@@ -309,38 +383,36 @@ export default function ScannerScreen() {
                 setBackendUrl(customIp);
                 await checkConnection();
                 Alert.alert(
-                  isOnline ? 'Connesso!' : 'Non Raggiungibile',
+                  isOnline ? 'Connessione Riuscita' : 'Server Non Raggiungibile',
                   isOnline
-                    ? 'Server Zoodex collegato con successo!'
-                    : 'Impossibile contattare il server. Verifica porta 8000 e Wi-Fi.'
+                    ? 'Il Bio-Scanner è collegato al server di elaborazione YOLO.'
+                    : 'Verifica che il PC e il Pixel 8a siano sulla stessa rete WiFi.'
                 );
               }}>
-              <Text style={styles.testBtnText}>TESTA CONNESSIONE</Text>
+              <Text style={styles.testBtnText}>TEST CONNESSIONE</Text>
             </TouchableOpacity>
 
             <View style={styles.settingDivider} />
 
             <View style={styles.settingSwitchRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.switchTitle}>RISPARMIO BATTERIA</Text>
+              <View style={{ flex: 1, paddingRight: 10 }}>
+                <Text style={styles.switchTitle}>RISPARMIO ENERGETICO PIXEL 8A</Text>
                 <Text style={styles.switchDesc}>
-                  Riduce il framerate e la risoluzione per preservare la batteria sul Pixel 8a.
+                  Ottimizza la compressione delle immagini scansionate per preservare la batteria.
                 </Text>
               </View>
               <Switch
                 value={batterySaver}
                 onValueChange={setBatterySaver}
-                trackColor={{ false: '#CBD5E1', true: '#FFCB05' }}
+                trackColor={{ false: '#334155', true: '#10B981' }}
+                thumbColor="#FFFFFF"
               />
             </View>
 
             <TouchableOpacity
               style={styles.saveBtn}
-              onPress={() => {
-                setBackendUrl(customIp);
-                setSettingsVisible(false);
-              }}>
-              <Text style={styles.saveBtnText}>CONFERMA E CHIUDI</Text>
+              onPress={() => setSettingsVisible(false)}>
+              <Text style={styles.saveBtnText}>CONFERMA</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -354,225 +426,286 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: DexTheme.colors.pokedexRed,
   },
-  content: {
+  mainContainer: {
     flex: 1,
-    backgroundColor: DexTheme.colors.pokedexRed,
+    backgroundColor: DexTheme.colors.pokedexRedDeep,
     justifyContent: 'space-between',
   },
-  viewfinderBezel: {
-    paddingHorizontal: 12,
-    paddingTop: 8,
+  toastNoticeBox: {
+    position: 'absolute',
+    top: 10,
+    left: 20,
+    right: 20,
+    backgroundColor: 'rgba(15, 23, 42, 0.95)',
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#00E5FF',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    zIndex: 99,
+    elevation: 10,
+    shadowColor: '#00E5FF',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.35,
+    shadowRadius: 6,
   },
-  screenInner: {
-    width: '100%',
-    height: VIEWFINDER_HEIGHT,
+  toastNoticeText: {
+    color: '#E2E8F0',
+    fontSize: 11,
+    fontWeight: '700',
+    flex: 1,
+    lineHeight: 16,
+  },
+  viewfinderWrapper: {
+    marginHorizontal: 10,
+    marginTop: 6,
     backgroundColor: '#0F172A',
-    borderRadius: 18,
-    borderWidth: 4,
+    borderRadius: 16,
+    borderWidth: 2.5,
     borderColor: '#334155',
     overflow: 'hidden',
-    position: 'relative',
-    elevation: 8,
+    elevation: 10,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+  },
+  screenInner: {
+    flex: 1,
+    backgroundColor: '#020617',
+    position: 'relative',
   },
   permissionBox: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 24,
+    padding: 30,
+    backgroundColor: '#090D16',
   },
   permissionTitle: {
-    color: '#00E5FF',
+    color: '#F8FAFC',
+    fontSize: 13,
     fontWeight: '900',
-    fontSize: 16,
-    letterSpacing: 1.5,
-    marginTop: 12,
+    letterSpacing: 1,
+    marginTop: 14,
+    marginBottom: 8,
+    textAlign: 'center',
   },
   permissionText: {
     color: '#94A3B8',
+    fontSize: 12,
     textAlign: 'center',
-    fontSize: 13,
-    lineHeight: 20,
-    marginTop: 8,
+    lineHeight: 18,
     marginBottom: 20,
   },
   permissionBtn: {
-    backgroundColor: DexTheme.colors.pokemonBlue,
+    backgroundColor: '#0284C7',
+    paddingVertical: 10,
     paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 10,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#60A5FA',
+    borderColor: '#38BDF8',
   },
   permissionBtnText: {
     color: '#FFFFFF',
-    fontWeight: '900',
-    fontSize: 12,
-    letterSpacing: 1,
+    fontWeight: '800',
+    fontSize: 11,
+    letterSpacing: 0.8,
   },
-  cameraFloatingControls: {
+  floatingTopBar: {
     position: 'absolute',
-    top: 12,
-    right: 12,
+    top: 10,
+    left: 10,
+    right: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(15, 23, 42, 0.88)',
+    paddingVertical: 4,
+    paddingHorizontal: 9,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#334155',
+    gap: 6,
+  },
+  pulsingDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+  },
+  dotReady: {
+    backgroundColor: '#10B981',
+  },
+  dotScanning: {
+    backgroundColor: '#00E5FF',
+  },
+  dotCaptured: {
+    backgroundColor: '#FBBF24',
+  },
+  statusBadgeText: {
+    color: '#F8FAFC',
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+  },
+  statusBadgeUnlockBtn: {
+    backgroundColor: 'rgba(15, 23, 42, 0.94)',
+    borderWidth: 1.5,
+    borderColor: '#00E5FF',
+    gap: 6,
+  },
+  statusBadgeUnlockText: {
+    color: '#00E5FF',
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 0.8,
+  },
+  unfreezePillBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 229, 255, 0.15)',
+    paddingVertical: 2,
+    paddingHorizontal: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#00E5FF',
+    gap: 4,
+  },
+  unfreezePillText: {
+    color: '#00E5FF',
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  cameraActionButtons: {
+    flexDirection: 'row',
     gap: 8,
   },
   floatingBtn: {
-    backgroundColor: 'rgba(15, 23, 42, 0.75)',
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(15, 23, 42, 0.88)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: '#334155',
   },
   floatingBtnActive: {
-    borderColor: '#FFCB05',
-    backgroundColor: 'rgba(251, 191, 36, 0.25)',
+    backgroundColor: 'rgba(0, 229, 255, 0.25)',
+    borderColor: '#00E5FF',
   },
-  demoBar: {
+  telemetryBar: {
     position: 'absolute',
-    bottom: 8,
-    left: 8,
-    right: 8,
+    bottom: 6,
+    left: 10,
+    right: 10,
+    backgroundColor: 'rgba(15, 23, 42, 0.88)',
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 6,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  telemetryItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(15, 23, 42, 0.85)',
-    paddingHorizontal: 8,
-    paddingVertical: 5,
-    borderRadius: 10,
     gap: 6,
   },
-  demoBarLabel: {
-    color: '#38BDF8',
+  telemetryLabel: {
+    color: '#94A3B8',
     fontSize: 9,
-    fontWeight: '900',
-    letterSpacing: 0.5,
-  },
-  demoChip: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    borderRadius: 6,
-  },
-  demoChipText: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontWeight: '700',
-  },
-  controlsBezel: {
-    backgroundColor: DexTheme.colors.pokedexRed,
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-    borderTopWidth: 2,
-    borderTopColor: DexTheme.colors.pokedexRedDeep,
-  },
-  autoScanRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: DexTheme.colors.pokedexRedDark,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 10,
-    marginBottom: 10,
-  },
-  autoScanLabelBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  autoScanLabel: {
-    color: '#FFFFFF',
     fontWeight: '800',
-    fontSize: 11,
     letterSpacing: 0.5,
   },
-  scanButtonArea: {
+  telemetryValue: {
+    color: '#00E5FF',
+    fontSize: 10,
+    fontWeight: '900',
+  },
+  scanningMiniSpinner: {
+    paddingRight: 4,
+  },
+  bottomConsole: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 10,
+    paddingHorizontal: 22,
+    paddingBottom: 16,
+    paddingTop: 4,
   },
-  dpad: {
-    width: 60,
-    height: 60,
-    justifyContent: 'center',
+  sideConsoleBtn: {
     alignItems: 'center',
-  },
-  dpadH: {
-    position: 'absolute',
-    width: 60,
-    height: 20,
-    backgroundColor: '#1E293B',
-    borderRadius: 4,
-  },
-  dpadV: {
-    position: 'absolute',
-    width: 20,
-    height: 60,
-    backgroundColor: '#1E293B',
-    borderRadius: 4,
-  },
-  dpadCenter: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: '#0F172A',
-  },
-  scanOuterButton: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 4,
-    borderColor: '#CBD5E1',
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
-  },
-  scanInnerButton: {
-    width: 76,
-    height: 76,
-    borderRadius: 38,
-    backgroundColor: DexTheme.colors.pokemonBlue,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#3B82F6',
-  },
-  scanInnerButtonActive: {
-    backgroundColor: '#1D4ED8',
-  },
-  scanButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '900',
-    fontSize: 9,
-    letterSpacing: 1,
-    marginTop: 2,
-  },
-  catalogShortcutBtn: {
     backgroundColor: '#1E293B',
     paddingVertical: 10,
     paddingHorizontal: 14,
     borderRadius: 12,
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#475569',
+    borderWidth: 1,
+    borderColor: '#334155',
+    minWidth: 80,
+    gap: 4,
   },
-  catalogShortcutText: {
+  sideConsoleBtnText: {
     color: '#FFFFFF',
+    fontWeight: '800',
     fontSize: 10,
+    letterSpacing: 0.8,
+  },
+  scanTriggerBtn: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: -14,
+  },
+  scanTriggerBtnActive: {
+    opacity: 0.85,
+  },
+  scanTriggerOuterRing: {
+    width: 74,
+    height: 74,
+    borderRadius: 37,
+    backgroundColor: 'rgba(220, 10, 45, 0.28)',
+    borderWidth: 2.5,
+    borderColor: '#00E5FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 8,
+    shadowColor: '#00E5FF',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.45,
+    shadowRadius: 8,
+  },
+  scanTriggerInnerCore: {
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    backgroundColor: DexTheme.colors.pokedexRed,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  scanTriggerCoreActive: {
+    backgroundColor: DexTheme.colors.pokemonBlue,
+    borderColor: '#00E5FF',
+  },
+  scanTriggerLabel: {
+    color: '#F8FAFC',
     fontWeight: '900',
-    letterSpacing: 1,
-    marginTop: 2,
+    fontSize: 11,
+    letterSpacing: 1.2,
+    marginTop: 4,
   },
   modalOverlay: {
     flex: 1,
@@ -584,10 +717,11 @@ const styles = StyleSheet.create({
   settingsCard: {
     width: '100%',
     maxWidth: 380,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
+    backgroundColor: '#0F172A',
+    borderRadius: 16,
     padding: 20,
-    elevation: 10,
+    borderWidth: 1,
+    borderColor: '#334155',
   },
   settingsHeader: {
     flexDirection: 'row',
@@ -596,47 +730,46 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   settingsTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '900',
     letterSpacing: 1,
-    color: '#0F172A',
+    color: '#F8FAFC',
   },
   inputLabel: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '800',
-    color: '#475569',
+    color: '#94A3B8',
     marginBottom: 6,
+    letterSpacing: 0.5,
   },
   textInput: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#1E293B',
     borderWidth: 1,
-    borderColor: '#CBD5E1',
-    borderRadius: 10,
+    borderColor: '#334155',
+    borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    fontSize: 13,
-    color: '#0F172A',
-  },
-  inputHelp: {
-    fontSize: 11,
-    color: '#94A3B8',
-    marginTop: 4,
-    marginBottom: 12,
+    fontSize: 12,
+    color: '#FFFFFF',
   },
   testBtn: {
-    backgroundColor: '#0F172A',
+    backgroundColor: '#1E293B',
+    borderWidth: 1,
+    borderColor: '#475569',
     paddingVertical: 10,
-    borderRadius: 10,
+    borderRadius: 8,
     alignItems: 'center',
+    marginTop: 10,
   },
   testBtnText: {
-    color: '#FFFFFF',
+    color: '#38BDF8',
     fontWeight: '800',
     fontSize: 11,
+    letterSpacing: 0.5,
   },
   settingDivider: {
     height: 1,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: '#334155',
     marginVertical: 16,
   },
   settingSwitchRow: {
@@ -646,25 +779,24 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   switchTitle: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '800',
-    color: '#0F172A',
+    color: '#F8FAFC',
   },
   switchDesc: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#64748B',
     marginTop: 2,
-    paddingRight: 10,
   },
   saveBtn: {
-    backgroundColor: DexTheme.colors.pokedexRed,
+    backgroundColor: DexTheme.colors.pokemonBlue,
     paddingVertical: 12,
-    borderRadius: 12,
+    borderRadius: 8,
     alignItems: 'center',
   },
   saveBtnText: {
     color: '#FFFFFF',
-    fontWeight: '900',
+    fontWeight: '800',
     fontSize: 12,
     letterSpacing: 1,
   },

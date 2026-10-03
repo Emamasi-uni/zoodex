@@ -1,5 +1,9 @@
-# Hugging Face Spaces (Docker SDK) compatible image. Spaces expose port 7860.
 FROM python:3.12-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libglib2.0-0 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN useradd -m -u 1000 user
 USER user

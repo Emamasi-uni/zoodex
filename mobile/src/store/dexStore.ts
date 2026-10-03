@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { DetectionItem, DexEntry, ScanResult, ZoodexApi } from '../services/api';
+import { AnimalCandidate, DetectionItem, DexEntry, ScanResult, ZoodexApi } from '../services/api';
 
 interface DexState {
   backendUrl: string;
@@ -10,6 +10,7 @@ interface DexState {
   activeDetections: DetectionItem[];
   selectedDetection: DetectionItem | null;
   lastScanResult: ScanResult | null;
+  confirmCandidate: AnimalCandidate | null;
   unlockedPopupAnimal: DexEntry | null;
   selectedContinent: string;
 
@@ -21,7 +22,9 @@ interface DexState {
   setIsScanning: (val: boolean) => void;
   setActiveDetections: (items: DetectionItem[]) => void;
   setSelectedDetection: (item: DetectionItem | null) => void;
-  triggerScan: (base64Img: string) => Promise<ScanResult>;
+  setConfirmCandidate: (candidate: AnimalCandidate | null) => void;
+  confirmAndUnlock: (candidate: AnimalCandidate) => Promise<void>;
+  triggerScan: (base64Img: string, askConfirmation?: boolean) => Promise<ScanResult>;
   dismissPopup: () => void;
   setSelectedContinent: (c: string) => void;
 }
@@ -35,6 +38,7 @@ export const useDexStore = create<DexState>((set, get) => ({
   activeDetections: [],
   selectedDetection: null,
   lastScanResult: null,
+  confirmCandidate: null,
   unlockedPopupAnimal: null,
   selectedContinent: 'all',
 
@@ -54,18 +58,45 @@ export const useDexStore = create<DexState>((set, get) => ({
   setIsScanning: (val: boolean) => set({ isScanning: val }),
   setActiveDetections: (items: DetectionItem[]) => set({ activeDetections: items }),
   setSelectedDetection: (item: DetectionItem | null) => set({ selectedDetection: item }),
+  setConfirmCandidate: (candidate: AnimalCandidate | null) => set({ confirmCandidate: candidate }),
   dismissPopup: () => set({ unlockedPopupAnimal: null }),
   setSelectedContinent: (c: string) => set({ selectedContinent: c }),
 
-  triggerScan: async (base64Img: string) => {
+  confirmAndUnlock: async (candidate: AnimalCandidate) => {
+    try {
+      await ZoodexApi.unlockAnimal(candidate.dex_number, 'pixel8a_user');
+      set({
+        confirmCandidate: null,
+        unlockedPopupAnimal: candidate,
+      });
+    } catch (e) {
+      console.warn('Errore conferma sblocco:', e);
+      set({ confirmCandidate: null });
+    }
+  },
+
+  triggerScan: async (base64Img: string, askConfirmation: boolean = false) => {
     set({ isScanning: true });
     try {
       const result = await ZoodexApi.scanImage(base64Img, 'pixel8a_user');
+      const currentSelected = get().selectedDetection;
+      let updatedSelected: DetectionItem | null = null;
+      if (currentSelected) {
+        updatedSelected = result.detections.find((d) => d.id === currentSelected.id) || null;
+      }
+
+      // If manual scan was pressed or explicit confirmation requested:
+      let nextCandidate: AnimalCandidate | null = get().confirmCandidate;
+      if (askConfirmation && result.candidates && result.candidates.length > 0) {
+        // Pick the top detected candidate
+        nextCandidate = result.candidates[0];
+      }
+
       set({
         lastScanResult: result,
         activeDetections: result.detections,
-        selectedDetection: result.detections.length > 0 ? result.detections[0] : null,
-        unlockedPopupAnimal: result.newly_unlocked.length > 0 ? result.newly_unlocked[0] : null,
+        selectedDetection: updatedSelected,
+        confirmCandidate: nextCandidate,
       });
       return result;
     } finally {

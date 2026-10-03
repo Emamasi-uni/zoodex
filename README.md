@@ -19,8 +19,10 @@
   - Ogni scansione riuscita sblocca l'animale nel Dex con scheda dettagliata (Nome scientifico, Altezza, Peso, Rarità, Habitat e Descrizione biografica).
 - **Ottimizzazione Batteria (Google Pixel 8a)**:
   - Modalità **Risparmio Energetico (ECO)** integrata.
-  - Scansione on-demand o continua adattiva (intervallo esteso per ridurre il consumo di fotocamera e GPU).
+  - Scansione on-demand con freeze frame e visualizzazione contorni SVG interattivi.
   - Funziona sia con server locale/cloud, sia con modalità simulatore offline per test rapidi ovunque.
+
+📖 Per tutti i dettagli su deploy in cloud (Hugging Face Spaces), limiti gratuiti e compilazione dell'APK standalone, consulta la [Guida al Deploy](docs/DEPLOYMENT_GUIDE.md).
 
 ---
 

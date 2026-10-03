@@ -1,36 +1,67 @@
 """Zoodex API endpoints for scanning, continent lists, catalog, and unlocks."""
 
 import io
+import json
 import base64
 import logging
+from pathlib import Path
 from typing import List, Optional
-from fastapi import APIRouter, File, UploadFile, Form, HTTPException, Body
+from fastapi import APIRouter, File, UploadFile, Form, HTTPException
 from pydantic import BaseModel
 from PIL import Image
 
 from app.services.detector import ObjectDetector
-from app.data.dex_catalog import CONTINENTS, CATALOG_BY_CONTINENT
+from app.data.dex_catalog import CONTINENTS, CATALOG_BY_CONTINENT, MASTER_ANIMALS
 
 logger = logging.getLogger("zoodex.api")
 
 router = APIRouter(prefix="/api/v1", tags=["zoodex"])
 
-# In-memory store for unlocked Dex entries (device_uuid -> set of dex_numbers)
-UNLOCKED_ENTRIES: dict[str, set[str]] = {}
+STORAGE_FILE = Path(__file__).resolve().parent.parent.parent / "unlocked_dex.json"
+
+def get_unlocked_set(device_id: str = "pixel8a_user") -> set[str]:
+    """Always loads fresh state from disk with safe fallback."""
+    if STORAGE_FILE.exists():
+        try:
+            with open(STORAGE_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                unlocked_list = data.get(device_id, ["001", "013"])
+                res = set(unlocked_list)
+                res.add("001")
+                res.add("013")
+                return res
+        except Exception as e:
+            logger.warning("Impossibile caricare storage sblocchi: %s", e)
+    return set(["001", "013"])
+
+def save_user_unlocked(device_id: str, new_set: set[str]):
+    try:
+        data = {}
+        if STORAGE_FILE.exists():
+            try:
+                with open(STORAGE_FILE, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+            except Exception:
+                data = {}
+        data[device_id] = sorted(list(new_set))
+        with open(STORAGE_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+    except Exception as e:
+        logger.error("Errore salvataggio sblocchi su disco: %s", e)
 
 class ScanBase64Request(BaseModel):
     image_base64: str
-    conf_threshold: Optional[float] = 0.35
-    device_id: Optional[str] = "anon_device"
+    conf_threshold: Optional[float] = 0.25
+    device_id: Optional[str] = "pixel8a_user"
 
 class UnlockRequest(BaseModel):
     dex_number: str
-    device_id: Optional[str] = "anon_device"
+    device_id: Optional[str] = "pixel8a_user"
 
 @router.get("/continents")
-def get_continents(device_id: str = "anon_device"):
+def get_continents(device_id: str = "pixel8a_user"):
     """Returns continents with stats on discovered animals."""
-    unlocked = UNLOCKED_ENTRIES.get(device_id, set(["001", "013"]))
+    unlocked = get_unlocked_set(device_id)
     res = []
     for c in CONTINENTS:
         cid = c["id"]
@@ -46,9 +77,9 @@ def get_continents(device_id: str = "anon_device"):
     return res
 
 @router.get("/animals")
-def get_animals(continent: Optional[str] = None, device_id: str = "anon_device"):
+def get_animals(continent: Optional[str] = None, device_id: str = "pixel8a_user"):
     """Returns the animal catalog with unlocked status for the device."""
-    unlocked = UNLOCKED_ENTRIES.get(device_id, set(["001", "013"]))
+    unlocked = get_unlocked_set(device_id)
 
     if continent and continent in CATALOG_BY_CONTINENT:
         animals = CATALOG_BY_CONTINENT[continent]
@@ -61,36 +92,63 @@ def get_animals(continent: Optional[str] = None, device_id: str = "anon_device")
         item = {
             **a,
             "is_unlocked": is_unlocked,
+            "silhouette_only": not is_unlocked,
+            "display_title": a["name"] if is_unlocked else f"??? ({a['category']})",
         }
-        if not is_unlocked:
-            # Hide scientific lore for locked animals in authentic Pokédex fashion
-            item["silhouette_only"] = True
-            item["display_title"] = f"??? ({a['category']})"
-        else:
-            item["silhouette_only"] = False
-            item["display_title"] = a["name"]
         result.append(item)
     return result
+
+@router.get("/catalog-export")
+def export_catalog():
+    """Returns the complete continental fauna catalog with photography URLs and biological traits."""
+    return {
+        "continents": CONTINENTS,
+        "total_species": len(MASTER_ANIMALS),
+        "animals": MASTER_ANIMALS,
+    }
+
+@router.get("/model-info")
+def get_model_info():
+    """Returns active YOLO model information."""
+    detector = ObjectDetector.get_instance()
+    is_custom = "runs" in detector.model_name or "zoodex_runs" in detector.model_name
+    return {
+        "model_name": detector.model_name,
+        "is_custom_weights": is_custom,
+        "model_active": detector.model is not None,
+    }
+
+@router.post("/reload-model")
+def reload_model():
+    """Hot-reloads detector weights to use the fine-tuned model once training finishes."""
+    detector = ObjectDetector.get_instance()
+    path = detector.reload_model()
+    is_custom = "runs" in path or "zoodex_runs" in path
+    return {
+        "status": "reloaded",
+        "model_path": path,
+        "is_custom_weights": is_custom,
+    }
 
 @router.post("/unlock")
 def unlock_animal(payload: UnlockRequest):
     """Marks an animal as discovered in the user's Zoodex."""
-    dev = payload.device_id or "anon_device"
-    if dev not in UNLOCKED_ENTRIES:
-        UNLOCKED_ENTRIES[dev] = set(["001", "013"])
-    UNLOCKED_ENTRIES[dev].add(payload.dex_number)
+    dev = payload.device_id or "pixel8a_user"
+    unlocked = get_unlocked_set(dev)
+    unlocked.add(payload.dex_number)
+    save_user_unlocked(dev, unlocked)
     return {
         "status": "unlocked",
         "dex_number": payload.dex_number,
-        "total_unlocked": len(UNLOCKED_ENTRIES[dev]),
+        "total_unlocked": len(unlocked),
     }
 
 @router.post("/scan")
 async def scan_image(
     file: Optional[UploadFile] = File(None),
     image_base64: Optional[str] = Form(None),
-    conf_threshold: float = Form(0.35),
-    device_id: str = Form("anon_device"),
+    conf_threshold: float = Form(0.25),
+    device_id: str = Form("pixel8a_user"),
 ):
     """Performs object detection and segmentation on the camera capture."""
     try:
@@ -104,27 +162,31 @@ async def scan_image(
             decoded = base64.b64decode(clean_b64)
             image = Image.open(io.BytesIO(decoded))
         else:
-            raise HTTPException(status_code=400, detail="Nessuna immagine fornita (file o image_base64 richiesto)")
+            raise HTTPException(status_code=400, detail="Nessuna immagine fornita")
 
         # Run segmentation
         detector = ObjectDetector.get_instance()
         detections = detector.detect_and_segment(image, conf_threshold=conf_threshold)
 
-        # Automatically unlock detected animals in the user's Dex!
-        newly_unlocked = []
-        dev_unlocked = UNLOCKED_ENTRIES.setdefault(device_id, set(["001", "013"]))
+        # Extract animal candidates for user confirmation
+        candidates = []
+        dev_unlocked = get_unlocked_set(device_id)
         for det in detections:
             dex = det.get("dex_entry", {})
             dex_num = dex.get("dex_number")
-            if det.get("is_animal") and dex_num and dex_num not in dev_unlocked and not dex_num.startswith("OBJ"):
-                dev_unlocked.add(dex_num)
-                newly_unlocked.append(dex)
+            if det.get("is_animal") and dex_num and not dex_num.startswith("OBJ") and not dex_num.startswith("GEN"):
+                candidates.append({
+                    **dex,
+                    "confidence": det.get("confidence", 0.0),
+                    "is_already_unlocked": dex_num in dev_unlocked,
+                })
 
         return {
             "success": True,
             "count": len(detections),
             "detections": detections,
-            "newly_unlocked": newly_unlocked,
+            "candidates": candidates,
+            "newly_unlocked": [],  # Requires explicit confirmation before saving
             "image_size": {"width": image.width, "height": image.height},
         }
 
@@ -138,6 +200,6 @@ async def scan_image_json(payload: ScanBase64Request):
     return await scan_image(
         file=None,
         image_base64=payload.image_base64,
-        conf_threshold=payload.conf_threshold or 0.35,
-        device_id=payload.device_id or "anon_device",
+        conf_threshold=payload.conf_threshold or 0.25,
+        device_id=payload.device_id or "pixel8a_user",
     )
