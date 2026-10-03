@@ -9,7 +9,7 @@ import numpy as np
 from PIL import Image
 import cv2
 
-from app.data.dex_catalog import COCO_TO_DEX
+from app.data.dex_catalog import get_dex_entry_for_class
 
 logger = logging.getLogger("zoodex.detector")
 
@@ -119,23 +119,7 @@ class ObjectDetector:
                                 [norm_box["xmin"], norm_box["ymax"]],
                             ]
 
-                        dex_info = COCO_TO_DEX.get(
-                            cls_name,
-                            {
-                                "dex_number": f"GEN-{cls_id:03d}",
-                                "name": cls_name.capitalize(),
-                                "scientific_name": f"Specimen {cls_name}",
-                                "continent": "europa",
-                                "continent_name": "Globale",
-                                "category": "Entità Rilevata",
-                                "is_animal": False,
-                                "rarity": "Comune",
-                                "height": f"{round((norm_box['ymax'] - norm_box['ymin']) * 1.5, 2)} m",
-                                "weight": "N/D",
-                                "description": f"Oggetto identificato dalla scansione Zoodex come {cls_name}.",
-                                "badge_color": "#3B82F6",
-                            },
-                        )
+                        dex_info = get_dex_entry_for_class(cls_name, cls_id)
 
                         detections.append(
                             {

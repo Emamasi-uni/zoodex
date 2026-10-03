@@ -62,8 +62,21 @@ export interface AnimalItem extends DexEntry {
   display_title: string;
 }
 
+import Constants from 'expo-constants';
+
+function getDefaultHost(): string {
+  const hostUri = Constants.expoConfig?.hostUri || (Constants as any).manifest?.debuggerHost;
+  if (hostUri) {
+    const ip = hostUri.split(':')[0];
+    if (ip && ip !== 'localhost' && ip !== '127.0.0.1') {
+      return `http://${ip}:8000`;
+    }
+  }
+  return 'http://192.168.1.65:8000';
+}
+
 export class ZoodexApi {
-  private static baseUrl = 'http://10.0.2.2:8000'; // Default Android emulator; changed in app settings
+  private static baseUrl = getDefaultHost();
 
   static setBaseUrl(url: string) {
     this.baseUrl = url.replace(/\/$/, '');
@@ -76,7 +89,7 @@ export class ZoodexApi {
   static async checkHealth(): Promise<boolean> {
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 2500);
+      const timeout = setTimeout(() => controller.abort(), 4000);
       const res = await fetch(`${this.baseUrl}/health`, { signal: controller.signal });
       clearTimeout(timeout);
       return res.ok;
@@ -88,13 +101,13 @@ export class ZoodexApi {
   static async scanImage(imageBase64: string, deviceId: string = 'pixel8a_user'): Promise<ScanResult> {
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 8000);
+      const timeout = setTimeout(() => controller.abort(), 20000);
       const res = await fetch(`${this.baseUrl}/api/v1/scan-json`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           image_base64: imageBase64,
-          conf_threshold: 0.3,
+          conf_threshold: 0.25,
           device_id: deviceId,
         }),
         signal: controller.signal,

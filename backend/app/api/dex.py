@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from PIL import Image
 
 from app.services.detector import ObjectDetector
-from app.data.dex_catalog import CONTINENTS, CATALOG_BY_CONTINENT, COCO_TO_DEX
+from app.data.dex_catalog import CONTINENTS, CATALOG_BY_CONTINENT
 
 logger = logging.getLogger("zoodex.api")
 

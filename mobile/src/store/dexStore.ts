@@ -27,7 +27,7 @@ interface DexState {
 }
 
 export const useDexStore = create<DexState>((set, get) => ({
-  backendUrl: 'http://10.0.2.2:8000',
+  backendUrl: ZoodexApi.getBaseUrl(),
   isOnline: false,
   batterySaver: false,
   autoContinuousScan: false,

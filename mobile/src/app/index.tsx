@@ -34,8 +34,10 @@ export default function ScannerScreen() {
 
   const [facing, setFacing] = useState<'back' | 'front'>('back');
   const [torch, setTorch] = useState<boolean>(false);
+  const [cameraReady, setCameraReady] = useState(false);
   const [settingsVisible, setSettingsVisible] = useState(false);
   const [customIp, setCustomIp] = useState('');
+  const isTakingPictureRef = useRef(false);
 
   const {
     backendUrl,
@@ -61,40 +63,42 @@ export default function ScannerScreen() {
     setCustomIp(backendUrl);
   }, []);
 
-  // Continuous auto-scan effect
+  // Continuous auto-scan effect with strict debouncing and concurrency guard
   useEffect(() => {
     if (!autoContinuousScan) return;
-    const intervalTime = batterySaver ? 3500 : 2000;
+    const intervalTime = batterySaver ? 4000 : 2500;
     const timer = setInterval(() => {
-      if (!isScanning) {
+      if (!isScanning && !isTakingPictureRef.current && cameraReady) {
         handleCaptureAndScan();
       }
     }, intervalTime);
     return () => clearInterval(timer);
-  }, [autoContinuousScan, isScanning, batterySaver]);
+  }, [autoContinuousScan, isScanning, batterySaver, cameraReady]);
 
   const handleCaptureAndScan = async () => {
-    if (isScanning) return;
+    if (isScanning || isTakingPictureRef.current) return;
+
+    if (!permission?.granted || !cameraReady || !cameraRef.current) {
+      console.log('Fotocamera non pronta per lo scatto.');
+      return;
+    }
 
     try {
-      if (cameraRef.current) {
-        const photo = await cameraRef.current.takePictureAsync({
-          quality: batterySaver ? 0.4 : 0.6,
-          base64: true,
-          skipProcessing: true,
-        });
+      isTakingPictureRef.current = true;
+      const photo = await cameraRef.current.takePictureAsync({
+        quality: 0.25, // Compact JPEG for fast transmission to detector
+        base64: true,
+        shutterSound: false,
+      });
 
-        if (photo?.base64) {
-          await triggerScan(photo.base64);
-          return;
-        }
+      if (photo?.base64) {
+        await triggerScan(photo.base64);
       }
     } catch (e) {
       console.warn('Errore scatto fotocamera:', e);
+    } finally {
+      isTakingPictureRef.current = false;
     }
-
-    // Fallback: trigger scan with simulated image if camera not active
-    await triggerScan('dummy_base64');
   };
 
   const handleTestDemoSubject = (animalKey: string) => {
@@ -119,7 +123,8 @@ export default function ScannerScreen() {
                 ref={cameraRef}
                 style={StyleSheet.absoluteFill}
                 facing={facing}
-                enableTorch={torch}>
+                enableTorch={torch}
+                onCameraReady={() => setCameraReady(true)}>
                 <DetectionOverlay
                   width={SCREEN_WIDTH - 24}
                   height={VIEWFINDER_HEIGHT}
