@@ -35,19 +35,25 @@ Questa guida illustra passo per passo come rendere Zoodex indipendente dal PC lo
 
 ---
 
-## 2. Deploy del Backend nel Cloud (Hugging Face Spaces)
+## 2. Deploy del Backend nel Cloud (Hugging Face Spaces con SDK Gradio)
 
-Hugging Face Spaces permette di ospitare container Docker gratuitamente in modo permanente con un URL HTTPS pubblico.
+Su Hugging Face Spaces:
+- **Perché NON scegliere Docker**: Hugging Face richiede ora una carta di credito per la verifica degli account Docker per prevenire abusi di mining.
+- **Perché NON scegliere Static**: Gli Space "Static" consentono solo HTML/CSS statico e **non possono eseguire Python, PyTorch o FastAPI**.
+- **La Soluzione 100% Gratuita e senza carta di credito**: Seleziona **Gradio** come SDK! Con Gradio, Hugging Face fornisce un ambiente Python completo con **2 vCPU, 16 GB di RAM e 50 GB di disco** a costo zero.
 
 ### Passaggi per Hugging Face Spaces:
 1. **Crea uno Space su Hugging Face:**
    - Vai su [huggingface.co/spaces](https://huggingface.co/spaces) -> **Create new Space**.
-   - **Space SDK**: seleziona **Docker** (Blank).
-   - **Space Hardware**: seleziona **CPU basic (2 vCPU · 16 GB · Free)** o una GPU T4 a consumo se desideri inferenza a 40ms.
+   - **Space SDK**: seleziona **Gradio** (NON Docker, NON Static).
+   - **Space Hardware**: seleziona **CPU basic (2 vCPU · 16 GB · Free)**.
    - Visibilità: **Public** o **Private**.
 
 2. **File del Backend pronti nel repository:**
-   Il backend include già il `Dockerfile` ottimizzato (`EXPOSE 7860`, `libglib2.0-0`, `python 3.12-slim`).
+   La cartella `backend/` è già configurata per Gradio:
+   - `backend/app.py`: Avvia Uvicorn sulla porta 7860 esponendo tutte le route REST FastAPI (`/api/v1/scan-json`, `/health`, ecc.) e montando un'interfaccia di test web visiva.
+   - `backend/requirements.txt`: Include FastAPI, Ultralytics YOLO, PyTorch, Gradio e OpenCV headless.
+   - `backend/README.md`: Contiene i metadati YAML necessari per lo Space Hugging Face.
 
 3. **Carica il Backend sullo Space:**
    Puoi sincronizzare direttamente la cartella `backend` tramite Git sullo Space Hugging Face:
@@ -55,9 +61,11 @@ Hugging Face Spaces permette di ospitare container Docker gratuitamente in modo 
    git remote add hf https://huggingface.co/spaces/<tuo-username>/<tuo-space-name>
    git subtree push --prefix backend hf main
    ```
-   Oppure crea il repo Space e copia i file di `backend/` (`Dockerfile`, `requirements.txt`, `app/`).
+   Oppure carica direttamente dall'interfaccia web di Hugging Face i file presenti dentro la cartella `backend/` (`app.py`, `requirements.txt`, `README.md`, e la cartella `app/`).
 
 4. **URL del Backend:**
+   Una volta avviato il container, il tuo backend sarà accessibile pubblicamente via HTTPS su:
+   `https://<tuo-username>-<tuo-space-name>.hf.space`
    Una volta avviato il container, il tuo backend sarà accessibile pubblicamente via HTTPS su:
    `https://<tuo-username>-<tuo-space-name>.hf.space`
 
