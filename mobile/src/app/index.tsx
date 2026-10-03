@@ -380,13 +380,12 @@ export default function ScannerScreen() {
             <TouchableOpacity
               style={styles.testBtn}
               onPress={async () => {
-                setBackendUrl(customIp);
-                await checkConnection();
+                const isNowOnline = await setBackendUrl(customIp);
                 Alert.alert(
-                  isOnline ? 'Connessione Riuscita' : 'Server Non Raggiungibile',
-                  isOnline
-                    ? 'Il Bio-Scanner è collegato al server di elaborazione YOLO.'
-                    : 'Verifica che il PC e il Pixel 8a siano sulla stessa rete WiFi.'
+                  isNowOnline ? 'Connessione Riuscita' : 'Server Non Raggiungibile',
+                  isNowOnline
+                    ? 'Il Bio-Scanner è collegato con successo al server di elaborazione YOLO!'
+                    : 'Impossibile raggiungere il server. Verifica l\'URL inserito e la connessione internet.'
                 );
               }}>
               <Text style={styles.testBtnText}>TEST CONNESSIONE</Text>

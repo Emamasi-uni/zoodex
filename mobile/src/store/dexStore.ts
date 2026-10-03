@@ -15,8 +15,8 @@ interface DexState {
   selectedContinent: string;
 
   // Actions
-  setBackendUrl: (url: string) => void;
-  checkConnection: () => Promise<void>;
+  setBackendUrl: (url: string) => Promise<boolean>;
+  checkConnection: () => Promise<boolean>;
   setBatterySaver: (val: boolean) => void;
   setAutoContinuousScan: (val: boolean) => void;
   setIsScanning: (val: boolean) => void;
@@ -42,15 +42,17 @@ export const useDexStore = create<DexState>((set, get) => ({
   unlockedPopupAnimal: null,
   selectedContinent: 'all',
 
-  setBackendUrl: (url: string) => {
+  setBackendUrl: async (url: string): Promise<boolean> => {
     ZoodexApi.setBaseUrl(url);
-    set({ backendUrl: url });
-    get().checkConnection();
+    const cleaned = ZoodexApi.getBaseUrl();
+    set({ backendUrl: cleaned });
+    return await get().checkConnection();
   },
 
-  checkConnection: async () => {
+  checkConnection: async (): Promise<boolean> => {
     const online = await ZoodexApi.checkHealth();
     set({ isOnline: online });
+    return online;
   },
 
   setBatterySaver: (val: boolean) => set({ batterySaver: val }),

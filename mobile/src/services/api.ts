@@ -89,7 +89,11 @@ export class ZoodexApi {
   private static baseUrl = getDefaultHost();
 
   static setBaseUrl(url: string) {
-    this.baseUrl = url.replace(/\/$/, '');
+    let cleaned = url.trim();
+    if (cleaned && !cleaned.startsWith('http://') && !cleaned.startsWith('https://')) {
+      cleaned = 'https://' + cleaned;
+    }
+    this.baseUrl = cleaned.replace(/\/+$/, '');
   }
 
   static getBaseUrl(): string {
@@ -99,11 +103,13 @@ export class ZoodexApi {
   static async checkHealth(): Promise<boolean> {
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 4000);
-      const res = await fetch(`${this.baseUrl}/health`, { signal: controller.signal });
+      const timeout = setTimeout(() => controller.abort(), 6000);
+      const url = `${this.baseUrl}/health`;
+      const res = await fetch(url, { signal: controller.signal });
       clearTimeout(timeout);
       return res.ok;
-    } catch {
+    } catch (e) {
+      console.warn(`Health check failed for ${this.baseUrl}:`, e);
       return false;
     }
   }
