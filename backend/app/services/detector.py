@@ -34,19 +34,35 @@ class ObjectDetector:
         backend_dir = Path(__file__).resolve().parent.parent.parent
         root_dir = backend_dir.parent
 
+        candidate_paths = [
+            backend_dir / "best.pt",
+            backend_dir / "weights" / "best.pt",
+            root_dir / "best.pt",
+            root_dir / "weights" / "best.pt",
+            Path("/content/best.pt"),
+            Path("/content/zoodex/best.pt"),
+            Path("/content/zoodex/backend/best.pt"),
+            Path("/content/zoodex/backend/weights/best.pt"),
+        ]
+
+        found_weights = []
+        for cand in candidate_paths:
+            if cand.exists() and cand.is_file() and cand.stat().st_size > 500000:
+                found_weights.append((cand.stat().st_mtime, cand))
+
         search_dirs = [
             root_dir / "runs" / "segment" / "zoodex_runs",
             root_dir / "zoodex_runs",
             backend_dir / "weights",
+            backend_dir,
         ]
-        found_weights = []
         for sdir in search_dirs:
             if sdir.exists():
-                for p in sdir.glob("**/weights/best.pt"):
-                    if p.exists() and p.stat().st_size > 500000:
+                for p in sdir.glob("**/best.pt"):
+                    if p.exists() and p.is_file() and p.stat().st_size > 500000:
                         found_weights.append((p.stat().st_mtime, p))
-                for p in sdir.glob("**/weights/last.pt"):
-                    if p.exists() and p.stat().st_size > 500000:
+                for p in sdir.glob("**/last.pt"):
+                    if p.exists() and p.is_file() and p.stat().st_size > 500000:
                         found_weights.append((p.stat().st_mtime, p))
 
         if found_weights:
