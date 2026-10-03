@@ -1,0 +1,56 @@
+{
+  "expo": {
+    "name": "Zoodex",
+    "slug": "zoodex",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "zoodex",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "backgroundColor": "#DC0A2D",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.zoodex.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Zoodex usa la fotocamera per riconoscere e catalogare gli animali inquadrati."
+      }
+    },
+    "android": {
+      "package": "com.zoodex.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#DC0A2D",
+        "foregroundImage": "./assets/images/android-icon-foreground.png"
+      },
+      "permissions": [
+        "CAMERA",
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
+      ],
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Permetti a Zoodex di usare la fotocamera per identificare e scontornare gli animali."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "bc5a1eb1-c292-4c7c-8e30-e62961bd000a"
+      }
+    },
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
