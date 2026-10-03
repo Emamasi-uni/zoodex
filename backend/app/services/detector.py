@@ -18,6 +18,8 @@ class ObjectDetector:
     model = None
     model_name: str = "yolo11n-seg.pt"
 
+    load_error: Optional[str] = None
+
     def __init__(self):
         self._load_model()
 
@@ -75,6 +77,7 @@ class ObjectDetector:
         return "yolo11n-seg.pt"
 
     def _load_model(self):
+        self.load_error = None
         try:
             from ultralytics import YOLO
             self.model_name = self.get_model_path()
@@ -82,10 +85,9 @@ class ObjectDetector:
             self.model = YOLO(self.model_name)
             logger.info("Modello YOLO caricato con successo!")
         except Exception as e:
-            logger.warning(
-                "Impossibile caricare Ultralytics YOLO al momento (%s). Utilizzo fallback OpenCV.",
-                e,
-            )
+            err_msg = f"{type(e).__name__}: {str(e)}"
+            logger.error("Impossibile caricare modello YOLO %s: %s", self.model_name, err_msg)
+            self.load_error = err_msg
             self.model = None
 
     def reload_model(self) -> str:

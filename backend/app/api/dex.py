@@ -111,23 +111,41 @@ def export_catalog():
 def get_model_info():
     """Returns active YOLO model information."""
     detector = ObjectDetector.get_instance()
-    is_custom = "runs" in detector.model_name or "zoodex_runs" in detector.model_name
+    model_name_lower = detector.model_name.lower()
+    is_custom = any(k in model_name_lower for k in ["best.pt", "last.pt", "runs", "zoodex"])
+    
+    file_size_mb = 0.0
+    from pathlib import Path
+    p = Path(detector.model_name)
+    if p.exists() and p.is_file():
+        file_size_mb = round(p.stat().st_size / (1024 * 1024), 2)
+        
+    num_classes = len(detector.model.names) if detector.model is not None and hasattr(detector.model, "names") else 0
     return {
         "model_name": detector.model_name,
+        "file_size_mb": file_size_mb,
         "is_custom_weights": is_custom,
         "model_active": detector.model is not None,
+        "num_classes": num_classes,
+        "load_error": detector.load_error,
     }
 
+@router.get("/reload-model")
 @router.post("/reload-model")
 def reload_model():
     """Hot-reloads detector weights to use the fine-tuned model once training finishes."""
     detector = ObjectDetector.get_instance()
     path = detector.reload_model()
-    is_custom = "runs" in path or "zoodex_runs" in path
+    model_name_lower = path.lower()
+    is_custom = any(k in model_name_lower for k in ["best.pt", "last.pt", "runs", "zoodex"])
+    num_classes = len(detector.model.names) if detector.model is not None and hasattr(detector.model, "names") else 0
     return {
         "status": "reloaded",
         "model_path": path,
         "is_custom_weights": is_custom,
+        "model_active": detector.model is not None,
+        "num_classes": num_classes,
+        "load_error": detector.load_error,
     }
 
 @router.post("/unlock")
