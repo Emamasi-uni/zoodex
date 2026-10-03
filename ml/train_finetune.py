@@ -29,7 +29,7 @@ def check_hardware():
             print(">>> Rilevata NVIDIA RTX 5070! Perfetta per il training locale con batch 16/32 e FP16.")
     else:
         print("\n[SUGGERIMENTO] Per abilitare la tua RTX 5070 con accelerazione CUDA in locale, esegui:")
-        print("pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124\n")
+        print("pip install --pre torch torchvision --index-url https://download.pytorch.org/whl/nightly/cu128\n")
     print("=" * 60)
     return cuda_ok
 

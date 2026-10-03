@@ -16,3 +16,12 @@ Thumbs.db
 .idea/
 .vscode/
 *.log
+
+# Datasets & Weights
+datasets/
+backend/datasets/
+runs/
+zoodex_runs/
+weights/
+*.pt
+
