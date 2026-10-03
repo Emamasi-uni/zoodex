@@ -24,4 +24,5 @@ runs/
 zoodex_runs/
 weights/
 *.pt
+*.onnx
 

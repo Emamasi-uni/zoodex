@@ -35,55 +35,41 @@ Questa guida illustra passo per passo come rendere Zoodex indipendente dal PC lo
 
 ---
 
-## 2. Deploy del Backend nel Cloud (Hugging Face Spaces con SDK Gradio)
+## 2. Deploy del Backend nel Cloud (Opzioni Gratuite al 100% Senza Carta)
 
-Su Hugging Face Spaces:
-- **Perché NON scegliere Docker**: Hugging Face richiede ora una carta di credito per la verifica degli account Docker per prevenire abusi di mining.
-- **Perché NON scegliere Static**: Gli Space "Static" consentono solo HTML/CSS statico e **non possono eseguire Python, PyTorch o FastAPI**.
-- **La Soluzione 100% Gratuita e senza carta di credito**: Seleziona **Gradio** come SDK! Con Gradio, Hugging Face fornisce un ambiente Python completo con **2 vCPU, 16 GB di RAM e 50 GB di disco** a costo zero.
+> [!WARNING]
+> Hugging Face ha recentemente modificato la propria politica: sia gli Space Docker che gli Space Gradio Compute richiedono ora la sottoscrizione **PRO** o carta di credito registrata. Gli Space "Static / Gradio Lite" rimangono gratuiti ma **non possono eseguire Python né PyTorch**.
+> Di seguito trovi le due migliori alternative cloud **100% gratuite e prive di carta di credito**:
 
-### Passaggi per Hugging Face Spaces:
-1. **Crea uno Space su Hugging Face:**
-   - Vai su [huggingface.co/spaces](https://huggingface.co/spaces) -> **Create new Space**.
-   - **Space SDK**: seleziona **Gradio** (NON Docker, NON Static).
-   - **Space Hardware**: seleziona **CPU basic (2 vCPU · 16 GB · Free)**.
-   - Visibilità: **Public** o **Private**.
+### Opzione A: Render.com (Web Service Cloud Permanente — Raccomandato)
 
-2. **File del Backend pronti nel repository:**
-   La cartella `backend/` è già configurata per Gradio:
-   - `backend/app.py`: Avvia Uvicorn sulla porta 7860 esponendo tutte le route REST FastAPI (`/api/v1/scan-json`, `/health`, ecc.) e montando un'interfaccia di test web visiva.
-   - `backend/requirements.txt`: Include FastAPI, Ultralytics YOLO, PyTorch, Gradio e OpenCV headless.
-   - `backend/README.md`: Contiene i metadati YAML necessari per lo Space Hugging Face.
-
-3. **Carica il Backend sullo Space:**
-   Puoi sincronizzare direttamente la cartella `backend` tramite Git sullo Space Hugging Face:
-   ```bash
-   git remote add hf https://huggingface.co/spaces/<tuo-username>/<tuo-space-name>
-   git subtree push --prefix backend hf main
-   ```
-   Oppure carica direttamente dall'interfaccia web di Hugging Face i file presenti dentro la cartella `backend/` (`app.py`, `requirements.txt`, `README.md`, e la cartella `app/`).
-
-4. **URL del Backend:**
-   Una volta avviato il container, il tuo backend sarà accessibile pubblicamente via HTTPS su:
-   `https://<tuo-username>-<tuo-space-name>.hf.space`
-   Una volta avviato il container, il tuo backend sarà accessibile pubblicamente via HTTPS su:
-   `https://<tuo-username>-<tuo-space-name>.hf.space`
+Render si collega direttamente al tuo repository GitHub `https://github.com/Emamasi-uni/zoodex.git` e crea un Web Service cloud permanente:
+1. Registrati gratis su [render.com](https://render.com) (usando il tuo account GitHub, nessuna carta richiesta).
+2. Clicca su **New +** -> **Web Service** -> Collega il tuo repository `zoodex`.
+3. Compila i campi:
+   - **Name**: `zoodex-backend`
+   - **Root Directory**: `backend`
+   - **Runtime**: `Python 3`
+   - **Build Command**: `pip install -r requirements-render.txt`
+   - **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+   - **Instance Type**: **Free (0$/mese)**
+4. Clicca su **Create Web Service**.
+5. Render compilerà il backend ed assegnerà un URL HTTPS pubblico tipo:  
+   `https://zoodex-backend.onrender.com`
+   *(I file `render.yaml` e `backend/requirements-render.txt` sono già inclusi nel repository per ottimizzare RAM e build).*
 
 ---
 
-## 3. Limiti dello Spazio su Hugging Face Spaces
+### Opzione B: Google Colab con GPU Gratuita T4 + Cloudflare Tunnel
 
-| Risorsa | Piano Free (Gratuito) | Piano GPU (Paid / Crediti) |
-|---|---|---|
-| **CPU** | 2 vCPU | Fino a 8 vCPU |
-| **RAM** | 16 GB | 30 GB - 60 GB |
-| **Storage Disco** | 50 GB gratuiti | 50 GB espandibile |
-| **Costo** | **0€ (Gratis sempre)** | A partire da ~$0.60/ora (T4 GPU) |
-| **Tempo di Inferenza YOLO11n** | ~250 - 500 ms per immagine | ~20 - 45 ms per immagine |
-| **Sleep / Ibernazione** | Va in pausa dopo 48h di inattività (si risveglia in ~15-20s alla prima richiesta) | Possibilità di mantenerlo sempre attivo |
-
-> [!NOTE]
-> Per un uso interattivo (dove l'utente preme "SCANSIONA" e attende mezzo secondo per visualizzare i contorni), il **tier Free (2 vCPU · 16 GB)** è più che sufficiente!
+Se desideri inferenza fulminea (30ms) grazie a una **GPU NVIDIA T4 gratuita da 16 GB VRAM** offerta da Google:
+1. Abbiamo creato il notebook dedicato: [ml/colab_cloud_backend.ipynb](ml/colab_cloud_backend.ipynb).
+2. Caricalo su [colab.research.google.com](https://colab.research.google.com).
+3. Vai su **Runtime** -> **Modifica tipo di runtime** -> Seleziona **T4 GPU** (Gratuito).
+4. Clicca su **Runtime** -> **Esegui tutto**.
+5. Il notebook scarica il backend, avvia FastAPI con accelerazione GPU e tramite Cloudflare Tunnel genera un URL HTTPS pubblico sicuro come:  
+   `https://zoodex-ai-xxxx.trycloudflare.com`
+6. Inserisci quell'URL nell'app Zoodex e avrai la massima velocità possibile senza spendere un centesimo!
 
 ---
 
