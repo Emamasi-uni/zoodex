@@ -132,10 +132,10 @@ def get_model_info():
 
 @router.get("/reload-model")
 @router.post("/reload-model")
-def reload_model():
-    """Hot-reloads detector weights to use the fine-tuned model once training finishes."""
+def reload_model(model: Optional[str] = None):
+    """Hot-reloads detector weights. Pass ?model=coco to use official pretrained COCO or ?model=custom for best.pt."""
     detector = ObjectDetector.get_instance()
-    path = detector.reload_model()
+    path = detector.reload_model(model_choice=model)
     model_name_lower = path.lower()
     is_custom = any(k in model_name_lower for k in ["best.pt", "last.pt", "runs", "zoodex"])
     num_classes = len(detector.model.names) if detector.model is not None and hasattr(detector.model, "names") else 0

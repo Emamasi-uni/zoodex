@@ -668,15 +668,24 @@ for animal in MASTER_ANIMALS:
         CATALOG_BY_CONTINENT[cid].append(animal)
 
 
+import re
+
 def find_animal_by_detection(cls_name: str) -> Optional[Dict[str, Any]]:
-    """Finds exact animal entry from detection label (supports aliases and substrings)."""
+    """Finds exact animal entry from detection label (supports aliases, word boundaries and LVIS categories)."""
     clean = cls_name.lower().strip()
     if clean in ALIAS_MAP:
         return ALIAS_MAP[clean]
-    
-    # Substring search
+
+    # Split LVIS multi-labels (e.g. "cougar/puma/catamount/mountain lion/panther")
+    parts = [p.strip() for p in clean.replace("/", ",").split(",") if p.strip()]
+    for p in parts:
+        if p in ALIAS_MAP:
+            return ALIAS_MAP[p]
+
+    # Word boundary search (matches whole words only, avoiding false positives like 'signboard' -> 'boar')
     for alias, entry in ALIAS_MAP.items():
-        if alias in clean or clean in alias:
+        pattern = r"\b" + re.escape(alias) + r"\b"
+        if re.search(pattern, clean):
             return entry
     return None
 

@@ -90,11 +90,24 @@ class ObjectDetector:
             self.load_error = err_msg
             self.model = None
 
-    def reload_model(self) -> str:
-        """Reloads the model (useful after fine-tuning finishes)."""
-        logger.info("Ricaricamento modello su richiesta...")
-        self._load_model()
-        return self.model_name
+    def reload_model(self, model_choice: Optional[str] = None) -> str:
+        """Reloads the model. If model_choice is 'coco' or 'default', loads yolo11n-seg.pt.
+        If 'custom', loads best.pt."""
+        logger.info("Ricaricamento modello su richiesta (scelta=%s)...", model_choice)
+        from ultralytics import YOLO
+        if model_choice in ["coco", "default", "yolo11n"]:
+            self.model_name = "yolo11n-seg.pt"
+            self.model = YOLO(self.model_name)
+            self.load_error = None
+            return self.model_name
+        elif model_choice in ["custom", "best"]:
+            self.model_name = self.get_model_path()
+            self.model = YOLO(self.model_name)
+            self.load_error = None
+            return self.model_name
+        else:
+            self._load_model()
+            return self.model_name
 
     def detect_and_segment(
         self,

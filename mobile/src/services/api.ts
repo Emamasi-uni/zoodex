@@ -135,8 +135,14 @@ export class ZoodexApi {
       }
       return await res.json();
     } catch (e) {
-      console.warn('Backend scan failed, using simulated on-device detection:', e);
-      return this.simulateOfflineScan();
+      console.warn('Backend scan error:', e);
+      return {
+        success: false,
+        count: 0,
+        detections: [],
+        candidates: [],
+        newly_unlocked: [],
+      };
     }
   }
 
