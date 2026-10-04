@@ -32,11 +32,19 @@ class ObjectDetector:
     @classmethod
     def get_model_path(cls) -> str:
         """Finds fine-tuned model weights (best.pt or last.pt) if available, otherwise returns standard YOLO."""
+        import os
         from pathlib import Path
         backend_dir = Path(__file__).resolve().parent.parent.parent
         root_dir = backend_dir.parent
 
+        env_path = os.environ.get("ZOODEX_MODEL_PATH")
+        if env_path and Path(env_path).exists() and Path(env_path).is_file():
+            logger.info(">>> MODELLO SPECIFICATO DA VARIABILE D'AMBIENTE: %s", env_path)
+            return env_path
+
         candidate_paths = [
+            Path("/content/drive/MyDrive/zoodex_weights/best.pt"),
+            Path("/content/drive/MyDrive/zoodex_weights/last.pt"),
             backend_dir / "best.pt",
             backend_dir / "weights" / "best.pt",
             root_dir / "best.pt",
@@ -53,6 +61,7 @@ class ObjectDetector:
                 found_weights.append((cand.stat().st_mtime, cand))
 
         search_dirs = [
+            Path("/content/drive/MyDrive/zoodex_weights"),
             root_dir / "runs" / "segment" / "zoodex_runs",
             root_dir / "zoodex_runs",
             backend_dir / "weights",
