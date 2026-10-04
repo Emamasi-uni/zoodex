@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AnimalCandidate, DetectionItem, DexEntry, ScanResult, ZoodexApi } from '../services/api';
 
 interface DexState {
@@ -29,31 +31,38 @@ interface DexState {
   setSelectedContinent: (c: string) => void;
 }
 
-export const useDexStore = create<DexState>((set, get) => ({
-  backendUrl: ZoodexApi.getBaseUrl(),
-  isOnline: false,
-  batterySaver: false,
-  autoContinuousScan: false,
-  isScanning: false,
-  activeDetections: [],
-  selectedDetection: null,
-  lastScanResult: null,
-  confirmCandidate: null,
-  unlockedPopupAnimal: null,
-  selectedContinent: 'all',
+export const useDexStore = create<DexState>()(
+  persist(
+    (set, get) => ({
+      backendUrl: ZoodexApi.getBaseUrl(),
+      isOnline: false,
+      batterySaver: false,
+      autoContinuousScan: false,
+      isScanning: false,
+      activeDetections: [],
+      selectedDetection: null,
+      lastScanResult: null,
+      confirmCandidate: null,
+      unlockedPopupAnimal: null,
+      selectedContinent: 'all',
 
-  setBackendUrl: async (url: string): Promise<boolean> => {
-    ZoodexApi.setBaseUrl(url);
-    const cleaned = ZoodexApi.getBaseUrl();
-    set({ backendUrl: cleaned });
-    return await get().checkConnection();
-  },
+      setBackendUrl: async (url: string): Promise<boolean> => {
+        ZoodexApi.setBaseUrl(url);
+        const cleaned = ZoodexApi.getBaseUrl();
+        set({ backendUrl: cleaned });
+        try {
+          await AsyncStorage.setItem('ZOODEX_SAVED_BACKEND_URL', cleaned);
+        } catch (e) {
+          console.warn('Errore salvataggio URL storage:', e);
+        }
+        return await get().checkConnection();
+      },
 
-  checkConnection: async (): Promise<boolean> => {
-    const online = await ZoodexApi.checkHealth();
-    set({ isOnline: online });
-    return online;
-  },
+      checkConnection: async (): Promise<boolean> => {
+        const online = await ZoodexApi.checkHealth();
+        set({ isOnline: online });
+        return online;
+      },
 
   setBatterySaver: (val: boolean) => set({ batterySaver: val }),
   setAutoContinuousScan: (val: boolean) => set({ autoContinuousScan: val }),
@@ -105,4 +114,21 @@ export const useDexStore = create<DexState>((set, get) => ({
       set({ isScanning: false });
     }
   },
-}));
+  }),
+  {
+    name: 'zoodex-dex-store',
+    storage: createJSONStorage(() => AsyncStorage),
+    partialize: (state) => ({
+      backendUrl: state.backendUrl,
+      batterySaver: state.batterySaver,
+      autoContinuousScan: state.autoContinuousScan,
+    }),
+    onRehydrateStorage: () => (state) => {
+      if (state?.backendUrl) {
+        ZoodexApi.setBaseUrl(state.backendUrl);
+        state.checkConnection();
+      }
+    },
+  }
+  )
+);

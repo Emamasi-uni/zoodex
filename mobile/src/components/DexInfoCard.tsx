@@ -11,6 +11,7 @@ import {
 import { DetectionItem, DexEntry } from '../services/api';
 import { DexTheme } from '../constants/dexTheme';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface DexInfoCardProps {
   detection: DetectionItem;
@@ -25,6 +26,7 @@ export const DexInfoCard: React.FC<DexInfoCardProps> = ({
   onOpenDex,
   onConfirmUnlock,
 }) => {
+  const insets = useSafeAreaInsets();
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
   const dex = detection.dex_entry;
@@ -108,15 +110,16 @@ export const DexInfoCard: React.FC<DexInfoCardProps> = ({
       </View>
 
       {/* 2. Full-Screen Expanded Dossier Modal */}
-      <Modal visible={isExpanded} animationType="slide" transparent={false}>
+      <Modal visible={isExpanded} animationType="slide" transparent={false} statusBarTranslucent={true}>
         <View style={styles.fullScreenContainer}>
-          {/* Full Screen Top Navigation */}
-          <View style={styles.fullScreenTopNav}>
+          {/* Full Screen Top Navigation with Safe Area Top Clearance */}
+          <View style={[styles.fullScreenTopNav, { paddingTop: Math.max(insets.top, 24) + 12 }]}>
             <TouchableOpacity
               onPress={() => setIsExpanded(false)}
               style={styles.fullNavBackBtn}
-              activeOpacity={0.8}>
-              <Ionicons name="arrow-back" size={20} color="#FFFFFF" />
+              hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+              activeOpacity={0.7}>
+              <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
               <Text style={styles.fullNavBackText}>TORNA AL MIRINO</Text>
             </TouchableOpacity>
 
@@ -127,7 +130,10 @@ export const DexInfoCard: React.FC<DexInfoCardProps> = ({
 
           <ScrollView
             style={styles.fullScroll}
-            contentContainerStyle={styles.fullScrollContent}
+            contentContainerStyle={[
+              styles.fullScrollContent,
+              { paddingBottom: Math.max(insets.bottom, 24) + 40 },
+            ]}
             showsVerticalScrollIndicator={false}>
             {/* Massive Hero Photo */}
             <View style={styles.heroImageContainer}>
@@ -416,8 +422,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 14,
-    paddingBottom: 12,
+    paddingBottom: 14,
     backgroundColor: DexTheme.colors.pokedexRed,
     borderBottomWidth: 2,
     borderBottomColor: DexTheme.colors.pokedexRedDeep,
@@ -425,7 +430,13 @@ const styles = StyleSheet.create({
   fullNavBackBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
   },
   fullNavBackText: {
     color: '#FFFFFF',

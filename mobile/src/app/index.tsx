@@ -23,6 +23,7 @@ import { DexHeader } from '../components/DexHeader';
 import { DetectionOverlay } from '../components/DetectionOverlay';
 import { DexInfoCard } from '../components/DexInfoCard';
 import { UnlockModal } from '../components/UnlockModal';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const DEFAULT_VIEWFINDER_HEIGHT = SCREEN_HEIGHT * 0.58;
@@ -62,9 +63,29 @@ export default function ScannerScreen() {
   } = useDexStore();
 
   useEffect(() => {
-    checkConnection();
-    setCustomIp(backendUrl);
+    const initSavedBackend = async () => {
+      try {
+        const savedUrl = await AsyncStorage.getItem('ZOODEX_SAVED_BACKEND_URL');
+        if (savedUrl) {
+          setCustomIp(savedUrl);
+          await setBackendUrl(savedUrl);
+        } else {
+          setCustomIp(backendUrl);
+          checkConnection();
+        }
+      } catch {
+        setCustomIp(backendUrl);
+        checkConnection();
+      }
+    };
+    initSavedBackend();
   }, []);
+
+  useEffect(() => {
+    if (backendUrl) {
+      setCustomIp(backendUrl);
+    }
+  }, [backendUrl]);
 
   const showNotice = (msg: string) => {
     setScanNotice(msg);
