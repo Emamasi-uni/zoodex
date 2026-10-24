@@ -7,6 +7,7 @@ pillow>=10.0.0
 numpy>=1.26.0
 opencv-python-headless>=4.9.0.80
 ultralytics>=8.3.0
+open_clip_torch>=3.3.0
 torch
 torchvision
 gradio>=4.44.0

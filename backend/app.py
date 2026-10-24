@@ -22,16 +22,28 @@ try:
         if image is None:
             return None, "Carica un'immagine per testare la scansione."
         
-        result = detector.detect_and_segment(image)
-        annotated = result.annotated_image
-        
-        info_lines = [f"### Rilevati {len(result.detections)} elementi:\n"]
-        for d in result.detections:
-            entry = catalog.find_or_create(d.class_name)
-            is_animal_str = "Animale" if entry.is_animal else "Oggetto/Altro"
+        detections = detector.detect_and_segment(image)
+        # Draw bounding boxes and labels onto the preview image
+        from PIL import ImageDraw
+        annotated = image.copy()
+        draw = ImageDraw.Draw(annotated)
+        w, h = annotated.size
+
+        info_lines = [f"### 🐾 Rilevati {len(detections)} elementi (YOLO + BioCLIP):\n"]
+        for d in detections:
+            dex = d.get("dex_entry", {})
+            b = d.get("box", {})
+            stage = d.get("stage", "yolo")
+            is_animal_str = f"Animale ({stage.upper()})" if d.get("is_animal") else "Oggetto/Altro"
+            
+            box_coords = [b.get("xmin", 0) * w, b.get("ymin", 0) * h, b.get("xmax", 0) * w, b.get("ymax", 0) * h]
+            outline_color = "#10B981" if d.get("is_animal") else "#38BDF8"
+            draw.rectangle(box_coords, outline=outline_color, width=3)
+
             info_lines.append(
-                f"- #{entry.dex_number} **{entry.name}** (*{entry.scientific_name}*) "
-                f"[{is_animal_str}] — Confidenza: {d.confidence:.1%}"
+                f"- #{dex.get('dex_number', '???')} **{dex.get('name', d.get('class_name'))}** "
+                f"(*{dex.get('scientific_name', 'N/A')}*) — Continente: **{dex.get('continent_name', 'Globale')}** "
+                f"[{is_animal_str}] — Confidenza: **{d.get('confidence', 0):.1%}**"
             )
         return annotated, "\n".join(info_lines)
 

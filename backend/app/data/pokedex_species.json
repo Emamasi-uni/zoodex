@@ -1,0 +1,898 @@
+{
+  "Felis silvestris (Gatto Selvatico)": {
+    "nome_it": "Gatto Selvatico",
+    "continente": "Europa",
+    "continent_id": "europa",
+    "dex_number": "001",
+    "scientific_name": "Felis silvestris"
+  },
+  "Canis lupus italicus (Lupo Appenninico)": {
+    "nome_it": "Lupo Appenninico",
+    "continente": "Europa",
+    "continent_id": "europa",
+    "dex_number": "002",
+    "scientific_name": "Canis lupus italicus"
+  },
+  "Cervus elaphus (Cervo Nobile)": {
+    "nome_it": "Cervo Nobile",
+    "continente": "Europa",
+    "continent_id": "europa",
+    "dex_number": "003",
+    "scientific_name": "Cervus elaphus"
+  },
+  "Ursus arctos (Orso Bruno dei Boschi)": {
+    "nome_it": "Orso Bruno dei Boschi",
+    "continente": "Europa",
+    "continent_id": "europa",
+    "dex_number": "008",
+    "scientific_name": "Ursus arctos"
+  },
+  "Aquila chrysaetos (Aquila Reale)": {
+    "nome_it": "Aquila Reale",
+    "continente": "Europa",
+    "continent_id": "europa",
+    "dex_number": "011",
+    "scientific_name": "Aquila chrysaetos"
+  },
+  "Bubo bubo (Gufo Reale)": {
+    "nome_it": "Gufo Reale",
+    "continente": "Europa",
+    "continent_id": "europa",
+    "dex_number": "012",
+    "scientific_name": "Bubo bubo"
+  },
+  "Vulpes vulpes (Volpe Rossa)": {
+    "nome_it": "Volpe Rossa",
+    "continente": "Europa",
+    "continent_id": "europa",
+    "dex_number": "013",
+    "scientific_name": "Vulpes vulpes"
+  },
+  "Sus scrofa (Cinghiale Selvatico)": {
+    "nome_it": "Cinghiale Selvatico",
+    "continente": "Europa",
+    "continent_id": "europa",
+    "dex_number": "017",
+    "scientific_name": "Sus scrofa"
+  },
+  "Loxodonta africana (Elefante della Savana)": {
+    "nome_it": "Elefante della Savana",
+    "continente": "Africa",
+    "continent_id": "africa",
+    "dex_number": "007",
+    "scientific_name": "Loxodonta africana"
+  },
+  "Equus quagga (Zebra delle Pianure)": {
+    "nome_it": "Zebra delle Pianure",
+    "continente": "Africa",
+    "continent_id": "africa",
+    "dex_number": "009",
+    "scientific_name": "Equus quagga"
+  },
+  "Giraffa camelopardalis (Giraffa Reticolata)": {
+    "nome_it": "Giraffa Reticolata",
+    "continente": "Africa",
+    "continent_id": "africa",
+    "dex_number": "010",
+    "scientific_name": "Giraffa camelopardalis"
+  },
+  "Panthera leo (Leone Africano)": {
+    "nome_it": "Leone Africano",
+    "continente": "Africa",
+    "continent_id": "africa",
+    "dex_number": "014",
+    "scientific_name": "Panthera leo"
+  },
+  "Acinonyx jubatus (Ghepardo)": {
+    "nome_it": "Ghepardo",
+    "continente": "Africa",
+    "continent_id": "africa",
+    "dex_number": "015",
+    "scientific_name": "Acinonyx jubatus"
+  },
+  "Hippopotamus amphibius (Ippopotamo Comune)": {
+    "nome_it": "Ippopotamo Comune",
+    "continente": "Africa",
+    "continent_id": "africa",
+    "dex_number": "028",
+    "scientific_name": "Hippopotamus amphibius"
+  },
+  "Ceratotherium simum (Rinoceronte Bianco)": {
+    "nome_it": "Rinoceronte Bianco",
+    "continente": "Africa",
+    "continent_id": "africa",
+    "dex_number": "029",
+    "scientific_name": "Ceratotherium simum"
+  },
+  "Equus caballus (Cavallo delle Steppe)": {
+    "nome_it": "Cavallo delle Steppe",
+    "continente": "Asia",
+    "continent_id": "asia",
+    "dex_number": "004",
+    "scientific_name": "Equus caballus"
+  },
+  "Panthera tigris tigris (Tigre del Bengala)": {
+    "nome_it": "Tigre del Bengala",
+    "continente": "Asia",
+    "continent_id": "asia",
+    "dex_number": "016",
+    "scientific_name": "Panthera tigris tigris"
+  },
+  "Panthera uncia (Leopardo delle Nevi)": {
+    "nome_it": "Leopardo delle Nevi",
+    "continente": "Asia",
+    "continent_id": "asia",
+    "dex_number": "018",
+    "scientific_name": "Panthera uncia"
+  },
+  "Ailuropoda melanoleuca (Panda Gigante)": {
+    "nome_it": "Panda Gigante",
+    "continente": "Asia",
+    "continent_id": "asia",
+    "dex_number": "031",
+    "scientific_name": "Ailuropoda melanoleuca"
+  },
+  "Ophiophagus hannah (Cobra Reale)": {
+    "nome_it": "Cobra Reale",
+    "continente": "Asia",
+    "continent_id": "asia",
+    "dex_number": "032",
+    "scientific_name": "Ophiophagus hannah"
+  },
+  "Panthera onca (Giaguaro)": {
+    "nome_it": "Giaguaro",
+    "continente": "Americhe",
+    "continent_id": "americhe",
+    "dex_number": "019",
+    "scientific_name": "Panthera onca"
+  },
+  "Haliaeetus leucocephalus (Aquila Calva Americana)": {
+    "nome_it": "Aquila Calva Americana",
+    "continente": "Americhe",
+    "continent_id": "americhe",
+    "dex_number": "020",
+    "scientific_name": "Haliaeetus leucocephalus"
+  },
+  "Bison bison (Bisonte Americano)": {
+    "nome_it": "Bisonte Americano",
+    "continente": "Americhe",
+    "continent_id": "americhe",
+    "dex_number": "034",
+    "scientific_name": "Bison bison"
+  },
+  "Alligator mississippiensis (Alligatore del Mississippi)": {
+    "nome_it": "Alligatore del Mississippi",
+    "continente": "Americhe",
+    "continent_id": "americhe",
+    "dex_number": "036",
+    "scientific_name": "Alligator mississippiensis"
+  },
+  "Lama glama (Lama delle Ande)": {
+    "nome_it": "Lama delle Ande",
+    "continente": "Americhe",
+    "continent_id": "americhe",
+    "dex_number": "038",
+    "scientific_name": "Lama glama"
+  },
+  "Osphranter rufus (Canguro Rosso)": {
+    "nome_it": "Canguro Rosso",
+    "continente": "Oceania",
+    "continent_id": "oceania",
+    "dex_number": "022",
+    "scientific_name": "Osphranter rufus"
+  },
+  "Phascolarctos cinereus (Koala)": {
+    "nome_it": "Koala",
+    "continente": "Oceania",
+    "continent_id": "oceania",
+    "dex_number": "023",
+    "scientific_name": "Phascolarctos cinereus"
+  },
+  "Ornithorhynchus anatinus (Ornitorinco)": {
+    "nome_it": "Ornitorinco",
+    "continente": "Oceania",
+    "continent_id": "oceania",
+    "dex_number": "024",
+    "scientific_name": "Ornithorhynchus anatinus"
+  },
+  "Sarcophilus harrisii (Diavolo della Tasmania)": {
+    "nome_it": "Diavolo della Tasmania",
+    "continente": "Oceania",
+    "continent_id": "oceania",
+    "dex_number": "039",
+    "scientific_name": "Sarcophilus harrisii"
+  },
+  "Aptenodytes forsteri (Pinguino Imperatore)": {
+    "nome_it": "Pinguino Imperatore",
+    "continente": "Antartide",
+    "continent_id": "antartide",
+    "dex_number": "025",
+    "scientific_name": "Aptenodytes forsteri"
+  },
+  "Hydrurga leptonyx (Foca Leopardo)": {
+    "nome_it": "Foca Leopardo",
+    "continente": "Antartide",
+    "continent_id": "antartide",
+    "dex_number": "026",
+    "scientific_name": "Hydrurga leptonyx"
+  },
+  "Orcinus orca (Orca Antartica)": {
+    "nome_it": "Orca Antartica",
+    "continente": "Antartide",
+    "continent_id": "antartide",
+    "dex_number": "027",
+    "scientific_name": "Orcinus orca"
+  },
+  "Balaenoptera musculus (Balenottera Azzurra)": {
+    "nome_it": "Balenottera Azzurra",
+    "continente": "Antartide",
+    "continent_id": "antartide",
+    "dex_number": "042",
+    "scientific_name": "Balaenoptera musculus"
+  },
+  "Ailurus fulgens (Panda Rosso)": {
+    "nome_it": "Panda Rosso",
+    "continente": "Asia",
+    "continent_id": "asia",
+    "dex_number": "040",
+    "scientific_name": "Ailurus fulgens"
+  },
+  "Sciurus vulgaris (Eurasian Red Squirrel)": {
+    "nome_it": "Scoiattolo Rosso",
+    "continente": "Europa",
+    "continent_id": "europa",
+    "dex_number": "043",
+    "scientific_name": "Sciurus vulgaris"
+  },
+  "Capreolus capreolus (Western Roe Deer)": {
+    "nome_it": "Capriolo",
+    "continente": "Europa",
+    "continent_id": "europa",
+    "dex_number": "044",
+    "scientific_name": "Capreolus capreolus"
+  },
+  "Erinaceus europaeus (Common Hedgehog)": {
+    "nome_it": "Riccio Comune",
+    "continente": "Europa",
+    "continent_id": "europa",
+    "dex_number": "045",
+    "scientific_name": "Erinaceus europaeus"
+  },
+  "Lepus europaeus (Brown Hare)": {
+    "nome_it": "Lepre Comune",
+    "continente": "Europa",
+    "continent_id": "europa",
+    "dex_number": "046",
+    "scientific_name": "Lepus europaeus"
+  },
+  "Oryctolagus cuniculus (European Rabbit)": {
+    "nome_it": "Coniglio Selvatico Europeo",
+    "continente": "Europa",
+    "continent_id": "europa",
+    "dex_number": "047",
+    "scientific_name": "Oryctolagus cuniculus"
+  },
+  "Sciurus carolinensis (Eastern Gray Squirrel)": {
+    "nome_it": "Scoiattolo Grigio",
+    "continente": "Europa",
+    "continent_id": "europa",
+    "dex_number": "048",
+    "scientific_name": "Sciurus carolinensis"
+  },
+  "Castor fiber (Eurasian Beaver)": {
+    "nome_it": "Castoro Europeo",
+    "continente": "Europa",
+    "continent_id": "europa",
+    "dex_number": "049",
+    "scientific_name": "Castor fiber"
+  },
+  "Myocastor coypus (Coypu)": {
+    "nome_it": "Nutria",
+    "continente": "Europa",
+    "continent_id": "europa",
+    "dex_number": "050",
+    "scientific_name": "Myocastor coypus"
+  },
+  "Talpa europaea (European Mole)": {
+    "nome_it": "Talpa Europea",
+    "continente": "Europa",
+    "continent_id": "europa",
+    "dex_number": "051",
+    "scientific_name": "Talpa europaea"
+  },
+  "Meles meles (European Badger)": {
+    "nome_it": "Tasso Europeo",
+    "continente": "Europa",
+    "continent_id": "europa",
+    "dex_number": "052",
+    "scientific_name": "Meles meles"
+  },
+  "Felis catus (Domestic Cat)": {
+    "nome_it": "Gatto Domestico",
+    "continente": "Europa",
+    "continent_id": "europa",
+    "dex_number": "053",
+    "scientific_name": "Felis catus"
+  },
+  "Anas platyrhynchos (Mallard)": {
+    "nome_it": "Germano Reale",
+    "continente": "Europa",
+    "continent_id": "europa",
+    "dex_number": "054",
+    "scientific_name": "Anas platyrhynchos"
+  },
+  "Turdus merula (Eurasian Blackbird)": {
+    "nome_it": "Merlo",
+    "continente": "Europa",
+    "continent_id": "europa",
+    "dex_number": "055",
+    "scientific_name": "Turdus merula"
+  },
+  "Parus major (Great Tit)": {
+    "nome_it": "Cinciallegra",
+    "continente": "Europa",
+    "continent_id": "europa",
+    "dex_number": "056",
+    "scientific_name": "Parus major"
+  },
+  "Aepyceros melampus (Impala)": {
+    "nome_it": "Impala",
+    "continente": "Africa",
+    "continent_id": "africa",
+    "dex_number": "057",
+    "scientific_name": "Aepyceros melampus"
+  },
+  "Syncerus caffer (African Buffalo)": {
+    "nome_it": "Bufalo Africano",
+    "continente": "Africa",
+    "continent_id": "africa",
+    "dex_number": "058",
+    "scientific_name": "Syncerus caffer"
+  },
+  "Phacochoerus africanus (Common Warthog)": {
+    "nome_it": "Facocero Comune",
+    "continente": "Africa",
+    "continent_id": "africa",
+    "dex_number": "059",
+    "scientific_name": "Phacochoerus africanus"
+  },
+  "Giraffa giraffa (Southern Giraffe)": {
+    "nome_it": "Giraffa Meridionale",
+    "continente": "Africa",
+    "continent_id": "africa",
+    "dex_number": "060",
+    "scientific_name": "Giraffa giraffa"
+  },
+  "Chlorocebus pygerythrus (Vervet Monkey)": {
+    "nome_it": "Cercopiteco Verde",
+    "continente": "Africa",
+    "continent_id": "africa",
+    "dex_number": "061",
+    "scientific_name": "Chlorocebus pygerythrus"
+  },
+  "Connochaetes taurinus (Common Wildebeest)": {
+    "nome_it": "Gnu Striato",
+    "continente": "Africa",
+    "continent_id": "africa",
+    "dex_number": "062",
+    "scientific_name": "Connochaetes taurinus"
+  },
+  "Tragelaphus strepsiceros (Greater Kudu)": {
+    "nome_it": "Cudù Maggiore",
+    "continente": "Africa",
+    "continent_id": "africa",
+    "dex_number": "063",
+    "scientific_name": "Tragelaphus strepsiceros"
+  },
+  "Kobus ellipsiprymnus (Waterbuck)": {
+    "nome_it": "Antilope D'Acqua",
+    "continente": "Africa",
+    "continent_id": "africa",
+    "dex_number": "064",
+    "scientific_name": "Kobus ellipsiprymnus"
+  },
+  "Papio ursinus (Chacma Baboon)": {
+    "nome_it": "Babbuino Nero",
+    "continente": "Africa",
+    "continent_id": "africa",
+    "dex_number": "065",
+    "scientific_name": "Papio ursinus"
+  },
+  "Crocuta crocuta (Spotted Hyena)": {
+    "nome_it": "Iena Maculata",
+    "continente": "Africa",
+    "continent_id": "africa",
+    "dex_number": "066",
+    "scientific_name": "Crocuta crocuta"
+  },
+  "Procavia capensis (Rock Hyrax)": {
+    "nome_it": "Irace Del Capo",
+    "continente": "Africa",
+    "continent_id": "africa",
+    "dex_number": "067",
+    "scientific_name": "Procavia capensis"
+  },
+  "Panthera pardus (Leopard)": {
+    "nome_it": "Leopardo",
+    "continente": "Africa",
+    "continent_id": "africa",
+    "dex_number": "068",
+    "scientific_name": "Panthera pardus"
+  },
+  "Alopochen aegyptiaca (Egyptian Goose)": {
+    "nome_it": "Oca Egiziana",
+    "continente": "Africa",
+    "continent_id": "africa",
+    "dex_number": "069",
+    "scientific_name": "Alopochen aegyptiaca"
+  },
+  "Pycnonotus barbatus (Common Bulbul)": {
+    "nome_it": "Bulbul Golanera",
+    "continente": "Africa",
+    "continent_id": "africa",
+    "dex_number": "070",
+    "scientific_name": "Pycnonotus barbatus"
+  },
+  "Macaca fascicularis (Long-tailed Macaque)": {
+    "nome_it": "Macaco Cinomolgo",
+    "continente": "Asia",
+    "continent_id": "asia",
+    "dex_number": "071",
+    "scientific_name": "Macaca fascicularis"
+  },
+  "Callosciurus erythraeus (Pallas' Squirrel)": {
+    "nome_it": "Scoiattolo Di Pallas",
+    "continente": "Asia",
+    "continent_id": "asia",
+    "dex_number": "072",
+    "scientific_name": "Callosciurus erythraeus"
+  },
+  "Canis familiaris (Domestic Dog)": {
+    "nome_it": "Cane",
+    "continente": "Asia",
+    "continent_id": "asia",
+    "dex_number": "073",
+    "scientific_name": "Canis familiaris"
+  },
+  "Macaca mulatta (Rhesus Macaque)": {
+    "nome_it": "Macaco Rhesus",
+    "continente": "Asia",
+    "continent_id": "asia",
+    "dex_number": "074",
+    "scientific_name": "Macaca mulatta"
+  },
+  "Callosciurus notatus (Plantain Squirrel)": {
+    "nome_it": "Scoiattolo Delle Banane",
+    "continente": "Asia",
+    "continent_id": "asia",
+    "dex_number": "075",
+    "scientific_name": "Callosciurus notatus"
+  },
+  "Elephas maximus (Asian Elephant)": {
+    "nome_it": "Elefante Asiatico",
+    "continente": "Asia",
+    "continent_id": "asia",
+    "dex_number": "076",
+    "scientific_name": "Elephas maximus"
+  },
+  "Macaca cyclopis (Formosan Rock Macaque)": {
+    "nome_it": "Macaco Di Taiwan",
+    "continente": "Asia",
+    "continent_id": "asia",
+    "dex_number": "077",
+    "scientific_name": "Macaca cyclopis"
+  },
+  "Axis axis (Chital)": {
+    "nome_it": "Cervo Pomellato",
+    "continente": "Asia",
+    "continent_id": "asia",
+    "dex_number": "078",
+    "scientific_name": "Axis axis"
+  },
+  "Rusa unicolor (Sambar)": {
+    "nome_it": "Sambar Indiano",
+    "continente": "Asia",
+    "continent_id": "asia",
+    "dex_number": "079",
+    "scientific_name": "Rusa unicolor"
+  },
+  "Funambulus pennantii (Five-striped Palm Squirrel)": {
+    "nome_it": "Scoiattolo Delle Palme Di Pennant",
+    "continente": "Asia",
+    "continent_id": "asia",
+    "dex_number": "080",
+    "scientific_name": "Funambulus pennantii"
+  },
+  "Cervus nippon (Sika Deer)": {
+    "nome_it": "Cervo Del Giappone",
+    "continente": "Asia",
+    "continent_id": "asia",
+    "dex_number": "081",
+    "scientific_name": "Cervus nippon"
+  },
+  "Canis aureus (Golden Jackal)": {
+    "nome_it": "Sciacallo Dorato",
+    "continente": "Asia",
+    "continent_id": "asia",
+    "dex_number": "082",
+    "scientific_name": "Canis aureus"
+  },
+  "Passer montanus (Eurasian Tree Sparrow)": {
+    "nome_it": "Passera Mattugia",
+    "continente": "Asia",
+    "continent_id": "asia",
+    "dex_number": "083",
+    "scientific_name": "Passer montanus"
+  },
+  "Columba livia (Rock Pigeon)": {
+    "nome_it": "Piccione",
+    "continente": "Asia",
+    "continent_id": "asia",
+    "dex_number": "084",
+    "scientific_name": "Columba livia"
+  },
+  "Ardea cinerea (Grey Heron)": {
+    "nome_it": "Airone Cenerino",
+    "continente": "Asia",
+    "continent_id": "asia",
+    "dex_number": "085",
+    "scientific_name": "Ardea cinerea"
+  },
+  "Odocoileus virginianus (White-tailed Deer)": {
+    "nome_it": "Cervo Coda Bianca",
+    "continente": "Americhe",
+    "continent_id": "americhe",
+    "dex_number": "086",
+    "scientific_name": "Odocoileus virginianus"
+  },
+  "Odocoileus hemionus (Mule Deer)": {
+    "nome_it": "Cervo Mulo",
+    "continente": "Americhe",
+    "continent_id": "americhe",
+    "dex_number": "087",
+    "scientific_name": "Odocoileus hemionus"
+  },
+  "Sylvilagus floridanus (Eastern Cottontail)": {
+    "nome_it": "Silvilago Orientale",
+    "continente": "Americhe",
+    "continent_id": "americhe",
+    "dex_number": "088",
+    "scientific_name": "Sylvilagus floridanus"
+  },
+  "Procyon lotor (Common Raccoon)": {
+    "nome_it": "Procione",
+    "continente": "Americhe",
+    "continent_id": "americhe",
+    "dex_number": "089",
+    "scientific_name": "Procyon lotor"
+  },
+  "Sciurus niger (Eastern Fox Squirrel)": {
+    "nome_it": "Scoiattolo Volpe",
+    "continente": "Americhe",
+    "continent_id": "americhe",
+    "dex_number": "090",
+    "scientific_name": "Sciurus niger"
+  },
+  "Canis latrans (Coyote)": {
+    "nome_it": "Coyote",
+    "continente": "Americhe",
+    "continent_id": "americhe",
+    "dex_number": "091",
+    "scientific_name": "Canis latrans"
+  },
+  "Tamias striatus (Eastern Chipmunk)": {
+    "nome_it": "Tamia Striato",
+    "continente": "Americhe",
+    "continent_id": "americhe",
+    "dex_number": "092",
+    "scientific_name": "Tamias striatus"
+  },
+  "Tamiasciurus hudsonicus (American Red Squirrel)": {
+    "nome_it": "Scoiattolo Rosso Americano",
+    "continente": "Americhe",
+    "continent_id": "americhe",
+    "dex_number": "093",
+    "scientific_name": "Tamiasciurus hudsonicus"
+  },
+  "Castor canadensis (American Beaver)": {
+    "nome_it": "Castoro Americano",
+    "continente": "Americhe",
+    "continent_id": "americhe",
+    "dex_number": "094",
+    "scientific_name": "Castor canadensis"
+  },
+  "Ursus americanus (American Black Bear)": {
+    "nome_it": "Orso Nero",
+    "continente": "Americhe",
+    "continent_id": "americhe",
+    "dex_number": "095",
+    "scientific_name": "Ursus americanus"
+  },
+  "Didelphis virginiana (Virginia Opossum)": {
+    "nome_it": "Opossum Della Virginia",
+    "continente": "Americhe",
+    "continent_id": "americhe",
+    "dex_number": "096",
+    "scientific_name": "Didelphis virginiana"
+  },
+  "Marmota monax (Groundhog)": {
+    "nome_it": "Marmotta Americana",
+    "continente": "Americhe",
+    "continent_id": "americhe",
+    "dex_number": "097",
+    "scientific_name": "Marmota monax"
+  },
+  "Otospermophilus beecheyi (California Ground Squirrel)": {
+    "nome_it": "Citello Della California",
+    "continente": "Americhe",
+    "continent_id": "americhe",
+    "dex_number": "098",
+    "scientific_name": "Otospermophilus beecheyi"
+  },
+  "Cervus canadensis (Wapiti)": {
+    "nome_it": "Wapiti",
+    "continente": "Americhe",
+    "continent_id": "americhe",
+    "dex_number": "099",
+    "scientific_name": "Cervus canadensis"
+  },
+  "Hydrochoerus hydrochaeris (Capybara)": {
+    "nome_it": "Capibara",
+    "continente": "Americhe",
+    "continent_id": "americhe",
+    "dex_number": "100",
+    "scientific_name": "Hydrochoerus hydrochaeris"
+  },
+  "Zalophus wollebaeki (Galápagos Sea Lion)": {
+    "nome_it": "Leone Marino Delle Galápagos",
+    "continente": "Americhe",
+    "continent_id": "americhe",
+    "dex_number": "101",
+    "scientific_name": "Zalophus wollebaeki"
+  },
+  "Otaria flavescens (South American Sea Lion)": {
+    "nome_it": "Leone Marino Sudamericano",
+    "continente": "Americhe",
+    "continent_id": "americhe",
+    "dex_number": "102",
+    "scientific_name": "Otaria flavescens"
+  },
+  "Nasua nasua (South American Coati)": {
+    "nome_it": "Coati Rosso",
+    "continente": "Americhe",
+    "continent_id": "americhe",
+    "dex_number": "103",
+    "scientific_name": "Nasua nasua"
+  },
+  "Macropus giganteus (Eastern Grey Kangaroo)": {
+    "nome_it": "Canguro Grigio Orientale",
+    "continente": "Oceania",
+    "continent_id": "oceania",
+    "dex_number": "104",
+    "scientific_name": "Macropus giganteus"
+  },
+  "Tachyglossus aculeatus (Short-beaked Echidna)": {
+    "nome_it": "Echidna Istrice",
+    "continente": "Oceania",
+    "continent_id": "oceania",
+    "dex_number": "105",
+    "scientific_name": "Tachyglossus aculeatus"
+  },
+  "Trichosurus vulpecula (Common Brushtail Possum)": {
+    "nome_it": "Tricosuro Volpino",
+    "continente": "Oceania",
+    "continent_id": "oceania",
+    "dex_number": "106",
+    "scientific_name": "Trichosurus vulpecula"
+  },
+  "Wallabia bicolor (Swamp Wallaby)": {
+    "nome_it": "Wallabia",
+    "continente": "Oceania",
+    "continent_id": "oceania",
+    "dex_number": "107",
+    "scientific_name": "Wallabia bicolor"
+  },
+  "Pseudocheirus peregrinus (Eastern Ring-tailed Possum)": {
+    "nome_it": "Opossum Coda Ad Anello Comune",
+    "continente": "Oceania",
+    "continent_id": "oceania",
+    "dex_number": "108",
+    "scientific_name": "Pseudocheirus peregrinus"
+  },
+  "Notamacropus rufogriseus (Red-necked Wallaby)": {
+    "nome_it": "Wallaby Dal Collo Rosso",
+    "continente": "Oceania",
+    "continent_id": "oceania",
+    "dex_number": "109",
+    "scientific_name": "Notamacropus rufogriseus"
+  },
+  "Macropus fuliginosus (Western Grey Kangaroo)": {
+    "nome_it": "Canguro Grigio Occidentale",
+    "continente": "Oceania",
+    "continent_id": "oceania",
+    "dex_number": "110",
+    "scientific_name": "Macropus fuliginosus"
+  },
+  "Vombatus ursinus (Bare-nosed Wombat)": {
+    "nome_it": "Vombato Comune",
+    "continente": "Oceania",
+    "continent_id": "oceania",
+    "dex_number": "111",
+    "scientific_name": "Vombatus ursinus"
+  },
+  "Arctocephalus forsteri (Long-nosed Fur Seal)": {
+    "nome_it": "Otaria Orsina Della Nuova Zelanda",
+    "continente": "Oceania",
+    "continent_id": "oceania",
+    "dex_number": "112",
+    "scientific_name": "Arctocephalus forsteri"
+  },
+  "Pteropus poliocephalus (Grey-headed Flying-fox)": {
+    "nome_it": "Volpe Volante Dalla Testa Grigia",
+    "continente": "Oceania",
+    "continent_id": "oceania",
+    "dex_number": "113",
+    "scientific_name": "Pteropus poliocephalus"
+  },
+  "Notamacropus agilis (Agile Wallaby)": {
+    "nome_it": "Wallaby Agile",
+    "continente": "Oceania",
+    "continent_id": "oceania",
+    "dex_number": "114",
+    "scientific_name": "Notamacropus agilis"
+  },
+  "Megaptera novaeangliae (Humpback Whale)": {
+    "nome_it": "Megattera",
+    "continente": "Oceania",
+    "continent_id": "oceania",
+    "dex_number": "115",
+    "scientific_name": "Megaptera novaeangliae"
+  },
+  "Osphranter robustus (Common Wallaroo)": {
+    "nome_it": "Wallaroo Comune",
+    "continente": "Oceania",
+    "continent_id": "oceania",
+    "dex_number": "116",
+    "scientific_name": "Osphranter robustus"
+  },
+  "Gymnorhina tibicen (Australian Magpie)": {
+    "nome_it": "Gazza Australiana",
+    "continente": "Oceania",
+    "continent_id": "oceania",
+    "dex_number": "117",
+    "scientific_name": "Gymnorhina tibicen"
+  },
+  "Dacelo novaeguineae (Laughing Kookaburra)": {
+    "nome_it": "Kookaburra Sghignazzante",
+    "continente": "Oceania",
+    "continent_id": "oceania",
+    "dex_number": "118",
+    "scientific_name": "Dacelo novaeguineae"
+  },
+  "Malurus cyaneus (Superb Fairywren)": {
+    "nome_it": "Maluro Superbo",
+    "continente": "Oceania",
+    "continent_id": "oceania",
+    "dex_number": "119",
+    "scientific_name": "Malurus cyaneus"
+  },
+  "Leptonychotes weddellii (Weddell Seal)": {
+    "nome_it": "Foca Di Weddel",
+    "continente": "Antartide",
+    "continent_id": "antartide",
+    "dex_number": "120",
+    "scientific_name": "Leptonychotes weddellii"
+  },
+  "Lobodon carcinophaga (Crabeater Seal)": {
+    "nome_it": "Foca Cancrivora",
+    "continente": "Antartide",
+    "continent_id": "antartide",
+    "dex_number": "121",
+    "scientific_name": "Lobodon carcinophaga"
+  },
+  "Arctocephalus gazella (Antarctic Fur Seal)": {
+    "nome_it": "Otaria Orsina Antartica",
+    "continente": "Antartide",
+    "continent_id": "antartide",
+    "dex_number": "122",
+    "scientific_name": "Arctocephalus gazella"
+  },
+  "Mirounga leonina (Southern Elephant Seal)": {
+    "nome_it": "Elefante Marino Del Sud",
+    "continente": "Antartide",
+    "continent_id": "antartide",
+    "dex_number": "123",
+    "scientific_name": "Mirounga leonina"
+  },
+  "Balaenoptera physalus (Fin Whale)": {
+    "nome_it": "Balenottera Comune",
+    "continente": "Antartide",
+    "continent_id": "antartide",
+    "dex_number": "124",
+    "scientific_name": "Balaenoptera physalus"
+  },
+  "Balaenoptera bonaerensis (Antarctic Minke Whale)": {
+    "nome_it": "Balenottera Minore Antartica",
+    "continente": "Antartide",
+    "continent_id": "antartide",
+    "dex_number": "125",
+    "scientific_name": "Balaenoptera bonaerensis"
+  },
+  "Ommatophoca rossii (Ross Seal)": {
+    "nome_it": "Foca Di Ross",
+    "continente": "Antartide",
+    "continent_id": "antartide",
+    "dex_number": "126",
+    "scientific_name": "Ommatophoca rossii"
+  },
+  "Cephalorhynchus cruciger (Hourglass Dolphin)": {
+    "nome_it": "Lagenorinco Dalla Croce",
+    "continente": "Antartide",
+    "continent_id": "antartide",
+    "dex_number": "127",
+    "scientific_name": "Cephalorhynchus cruciger"
+  },
+  "Berardius arnuxii (Arnoux's Beaked Whale)": {
+    "nome_it": "Berardio Australe",
+    "continente": "Antartide",
+    "continent_id": "antartide",
+    "dex_number": "128",
+    "scientific_name": "Berardius arnuxii"
+  },
+  "Eubalaena australis (Southern Right Whale)": {
+    "nome_it": "Balena Franca Australe",
+    "continente": "Antartide",
+    "continent_id": "antartide",
+    "dex_number": "129",
+    "scientific_name": "Eubalaena australis"
+  },
+  "Hyperoodon planifrons (Southern Bottlenose Whale)": {
+    "nome_it": "Iperodonte Australe",
+    "continente": "Antartide",
+    "continent_id": "antartide",
+    "dex_number": "130",
+    "scientific_name": "Hyperoodon planifrons"
+  },
+  "Globicephala melas (Long-finned Pilot Whale)": {
+    "nome_it": "Globicefalo",
+    "continente": "Antartide",
+    "continent_id": "antartide",
+    "dex_number": "131",
+    "scientific_name": "Globicephala melas"
+  },
+  "Mesoplodon layardii (Strap-toothed Beaked Whale)": {
+    "nome_it": "Mesoplodonte Di Layard",
+    "continente": "Antartide",
+    "continent_id": "antartide",
+    "dex_number": "132",
+    "scientific_name": "Mesoplodon layardii"
+  },
+  "Balaenoptera borealis (Sei Whale)": {
+    "nome_it": "Balenottera Boreale",
+    "continente": "Antartide",
+    "continent_id": "antartide",
+    "dex_number": "133",
+    "scientific_name": "Balaenoptera borealis"
+  },
+  "Pygoscelis papua (Gentoo Penguin)": {
+    "nome_it": "Pinguino Papua",
+    "continente": "Antartide",
+    "continent_id": "antartide",
+    "dex_number": "134",
+    "scientific_name": "Pygoscelis papua"
+  },
+  "Pygoscelis adeliae (Adelie Penguin)": {
+    "nome_it": "Pinguino Di Adelia",
+    "continente": "Antartide",
+    "continent_id": "antartide",
+    "dex_number": "135",
+    "scientific_name": "Pygoscelis adeliae"
+  },
+  "Pygoscelis antarcticus (Chinstrap Penguin)": {
+    "nome_it": "Pigoscelide Antartico",
+    "continente": "Antartide",
+    "continent_id": "antartide",
+    "dex_number": "136",
+    "scientific_name": "Pygoscelis antarcticus"
+  }
+}

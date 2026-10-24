@@ -109,7 +109,7 @@ def export_catalog():
 
 @router.get("/model-info")
 def get_model_info():
-    """Returns active YOLO model information."""
+    """Returns active YOLO and BioCLIP model information."""
     detector = ObjectDetector.get_instance()
     model_name_lower = detector.model_name.lower()
     is_custom = any(k in model_name_lower for k in ["best.pt", "last.pt", "runs", "zoodex"])
@@ -121,12 +121,18 @@ def get_model_info():
         file_size_mb = round(p.stat().st_size / (1024 * 1024), 2)
         
     num_classes = len(detector.model.names) if detector.model is not None and hasattr(detector.model, "names") else 0
+    
+    bioclip = detector.bioclip
     return {
         "model_name": detector.model_name,
         "file_size_mb": file_size_mb,
         "is_custom_weights": is_custom,
         "model_active": detector.model is not None,
         "num_classes": num_classes,
+        "animal_classes_count": len(detector.animal_class_ids),
+        "bioclip_active": bioclip.is_ready if bioclip else False,
+        "bioclip_device": bioclip.device if bioclip else "none",
+        "bioclip_species_count": len(bioclip.species_keys) if bioclip else 0,
         "load_error": detector.load_error,
     }
 
@@ -145,6 +151,7 @@ def reload_model(model: Optional[str] = None):
         "is_custom_weights": is_custom,
         "model_active": detector.model is not None,
         "num_classes": num_classes,
+        "animal_classes_count": len(detector.animal_class_ids),
         "load_error": detector.load_error,
     }
 
@@ -182,29 +189,39 @@ async def scan_image(
         else:
             raise HTTPException(status_code=400, detail="Nessuna immagine fornita")
 
-        # Run segmentation
+        # Run 4-stage segmentation & classification
         detector = ObjectDetector.get_instance()
         detections = detector.detect_and_segment(image, conf_threshold=conf_threshold)
 
-        # Extract animal candidates for user confirmation
+        # Extract animal candidates and update Pokédex database on confident matches
         candidates = []
+        newly_unlocked = []
         dev_unlocked = get_unlocked_set(device_id)
+
         for det in detections:
             dex = det.get("dex_entry", {})
             dex_num = dex.get("dex_number")
             if det.get("is_animal") and dex_num and not dex_num.startswith("OBJ") and not dex_num.startswith("GEN"):
+                is_already = dex_num in dev_unlocked
                 candidates.append({
                     **dex,
                     "confidence": det.get("confidence", 0.0),
-                    "is_already_unlocked": dex_num in dev_unlocked,
+                    "is_already_unlocked": is_already,
                 })
+                # Stage 4: If confident zoological classification (>=0.25), unlock in Pokédex
+                if not is_already and det.get("confidence", 0.0) >= 0.25:
+                    dev_unlocked.add(dex_num)
+                    newly_unlocked.append(dex)
+
+        if newly_unlocked:
+            save_user_unlocked(device_id, dev_unlocked)
 
         return {
             "success": True,
             "count": len(detections),
             "detections": detections,
             "candidates": candidates,
-            "newly_unlocked": [],  # Requires explicit confirmation before saving
+            "newly_unlocked": newly_unlocked,
             "image_size": {"width": image.width, "height": image.height},
         }
 
