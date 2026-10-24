@@ -92,60 +92,35 @@ class ObjectDetector:
             cls._instance = cls()
         return cls._instance
 
+    DEFAULT_MODEL_NAME: str = "yolo11m-seg.pt"
+
     @classmethod
     def get_model_path(cls) -> str:
-        """Finds fine-tuned model weights (best.pt or last.pt) if available, otherwise returns standard YOLO."""
+        """Finds fine-tuned model weights on Drive if available; otherwise returns official YOLO (yolo11m-seg.pt)."""
         import os
         from pathlib import Path
         backend_dir = Path(__file__).resolve().parent.parent.parent
-        root_dir = backend_dir.parent
 
-        env_path = os.environ.get("ZOODEX_MODEL_PATH")
-        if env_path and Path(env_path).exists() and Path(env_path).is_file():
+        # 1. Explicit override via environment variable
+        env_path = os.environ.get("ZOODEX_MODEL_PATH") or os.environ.get("ZOODEX_MODEL")
+        if env_path:
             logger.info(">>> MODELLO SPECIFICATO DA VARIABILE D'AMBIENTE: %s", env_path)
             return env_path
 
-        candidate_paths = [
+        # 2. Check if user explicitly wants custom weights or if Drive contains fine-tuned weights
+        drive_paths = [
             Path("/content/drive/MyDrive/zoodex_weights/best.pt"),
             Path("/content/drive/MyDrive/zoodex_weights/last.pt"),
-            backend_dir / "best.pt",
-            backend_dir / "weights" / "best.pt",
-            root_dir / "best.pt",
-            root_dir / "weights" / "best.pt",
-            Path("/content/best.pt"),
-            Path("/content/zoodex/best.pt"),
-            Path("/content/zoodex/backend/best.pt"),
-            Path("/content/zoodex/backend/weights/best.pt"),
         ]
+        for p in drive_paths:
+            if p.exists() and p.is_file() and p.stat().st_size > 500000:
+                logger.info(">>> MODELLO PERSONALIZZATO RILEVATO SU GOOGLE DRIVE: %s", p)
+                return str(p)
 
-        found_weights = []
-        for cand in candidate_paths:
-            if cand.exists() and cand.is_file() and cand.stat().st_size > 500000:
-                found_weights.append((cand.stat().st_mtime, cand))
-
-        search_dirs = [
-            Path("/content/drive/MyDrive/zoodex_weights"),
-            root_dir / "runs" / "segment" / "zoodex_runs",
-            root_dir / "zoodex_runs",
-            backend_dir / "weights",
-            backend_dir,
-        ]
-        for sdir in search_dirs:
-            if sdir.exists():
-                for p in sdir.glob("**/best.pt"):
-                    if p.exists() and p.is_file() and p.stat().st_size > 500000:
-                        found_weights.append((p.stat().st_mtime, p))
-                for p in sdir.glob("**/last.pt"):
-                    if p.exists() and p.is_file() and p.stat().st_size > 500000:
-                        found_weights.append((p.stat().st_mtime, p))
-
-        if found_weights:
-            found_weights.sort(key=lambda x: x[0], reverse=True)
-            chosen = str(found_weights[0][1])
-            logger.info(">>> MODELLO PERSONALIZZATO RILEVATO: %s! Utilizzo pesi fine-tuned.", chosen)
-            return chosen
-
-        return "yolo11n-seg.pt"
+        # 3. Fallback to official server model (yolo11m-seg.pt: high accuracy Medium model)
+        default_model = os.environ.get("ZOODEX_BASE_MODEL", cls.DEFAULT_MODEL_NAME)
+        logger.info(">>> Utilizzo modello ufficiale server: %s", default_model)
+        return default_model
 
     def _extract_animal_class_ids(self) -> Set[int]:
         """Extracts all animal class IDs from the loaded YOLO model names dictionary."""
@@ -172,7 +147,7 @@ class ObjectDetector:
             logger.info("Caricamento modello YOLO segmentation: %s", self.model_name)
             self.model = YOLO(self.model_name)
             self._extract_animal_class_ids()
-            logger.info("Modello YOLO caricato con successo!")
+            logger.info("Modello YOLO (%s) caricato con successo!", self.model_name)
         except Exception as e:
             err_msg = f"{type(e).__name__}: {str(e)}"
             logger.error("Impossibile caricare modello YOLO %s: %s", self.model_name, err_msg)
@@ -180,25 +155,26 @@ class ObjectDetector:
             self.model = None
 
     def reload_model(self, model_choice: Optional[str] = None) -> str:
-        """Reloads the model. If model_choice is 'coco' or 'default', loads yolo11n-seg.pt.
-        If 'custom', loads best.pt."""
+        """Reloads the model. Supports 'yolo11m-seg.pt', 'yolo11n-seg.pt', 'coco', 'custom', or any valid YOLO weight."""
         logger.info("Ricaricamento modello su richiesta (scelta=%s)...", model_choice)
         from ultralytics import YOLO
-        if model_choice in ["coco", "default", "yolo11n"]:
+        choice = (model_choice or "").lower().strip()
+        
+        if choice in ["coco", "default", "yolo11m", "yolo11m-seg", "yolo11m-seg.pt", "medium"]:
+            self.model_name = "yolo11m-seg.pt"
+        elif choice in ["yolo11n", "yolo11n-seg", "yolo11n-seg.pt", "nano"]:
             self.model_name = "yolo11n-seg.pt"
-            self.model = YOLO(self.model_name)
-            self._extract_animal_class_ids()
-            self.load_error = None
-            return self.model_name
-        elif model_choice in ["custom", "best"]:
+        elif choice in ["custom", "best"]:
             self.model_name = self.get_model_path()
-            self.model = YOLO(self.model_name)
-            self._extract_animal_class_ids()
-            self.load_error = None
-            return self.model_name
+        elif choice.endswith(".pt"):
+            self.model_name = model_choice
         else:
-            self._load_model()
-            return self.model_name
+            self.model_name = self.get_model_path()
+
+        self.model = YOLO(self.model_name)
+        self._extract_animal_class_ids()
+        self.load_error = None
+        return self.model_name
 
     def detect_and_segment(
         self,
